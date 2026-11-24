@@ -1,20 +1,52 @@
 # Uloom Quest: gamified syllabus for Ashraful Uloom Online
 
-Playable, faceless, mobile-first HTML5 games built from the **Jamiatul Ulama SA Tas-heel series** (Suhail's "jamaita tasheel series").
-First build: **Class 1, Lessons 4 & 5** (started 24 Nov 2026).
+Playable, faceless, mobile-first HTML5 games built from the **Jamiatul Ulama SA Tas-heel series** and *Towards Reading the Qur'an Part 1*.
+**Live:** https://suhailwadee.github.io/uloom-quest/class1/ (the old `class1-lessons-4-5/` link redirects here).
 
-## Layout
-- `site/`: the deployable static site (working copy). `repo/` is the git clone of `suhailwadee/uloom-quest` that GitHub Pages serves. Copy `site/` into `repo/`, then commit and push.
-  - `index.html`: hub page that lists every lesson game
-  - `assets/uloom-online-logo.png`: Uloom Online logo, from /workspace/uloom-reel/assets
-  - `class1-lessons-4-5/`: one folder per lesson game
-    - `data.js`: **all lesson content**. Edit this for new lessons.
-    - `game.js`: game engine (round types, sound, voice, effects). Reusable.
-    - `style.css`, `index.html`
-- `source/`: downloaded book PDFs plus page renders used to extract the content
-- `test_game.py`: headless Chrome test. It plays every level and screenshots each round type at desktop, phone and tablet sizes. Run it with `cd site && python3 -m http.server 8765 &` and then `python3 test_game.py [url]`.
-- `screenshots-test/`: latest test screenshots
+## Class 1 full build (25 Nov 2026)
+- `site/class1/` is the one game for all of Class 1.
+  - `data.js` holds **all content** (41 lessons, page refs in `src`).
+  - `levels.js` expands the data into 51 levels: 41 lessons plus 10 reviews (`r1`…`r10`).
+  - `voice.js` handles clip ids and English pronunciation.
+  - `game.js` is the engine, hub, rewards and certificate.
+  - `style.css` and `audio/` (537 clips plus `manifest.js`) complete the folder.
+- **Lesson map:** one level per lesson number, taken across all six books. For example, Lesson 7 is TRQ L7, Aqaa-id L7, Fiqh L7, Akhlaaq L7, Hadeeth H7 and Taa-reekh L7.
+  - Units: 1–11 (all six books), 12–21, 22–31 (Qur'an and Fiqh) and 32–41 (Qur'an only).
+  - A review level follows every 3–5 lessons.
+  - All levels are open. The next unplayed one pulses.
+- **Coverage:**
+  - TRQ L1–41
+  - Aqaa-id L1–7
+  - Fiqh L1–31
+  - Akhlaaq L1–3 and L5–7. **L4 "My speech" (book p12–13) is missing from the PDF.**
+  - Hadeeth H1–H10
+  - Taa-reekh L1–11
+- **Bubble fix:**
+  - On a correct pop, the motion stops, the other bubbles fade, and the right bubble grows in the centre with a gold ring, a "✓ letter" label, a star burst and its sound. Next appears after that.
+  - On a wrong pop, the right bubble glows and slows down, and the voice says "Look, this one is …".
+  - Every other round type also lights up the right answer after a wrong pick.
+- **Rewards (localStorage only):** nothing is sent anywhere. There are no logins and no leaderboard. Keys are `uq_*`.
+  - Stars: 10 for a first try, 5 after a mistake. Level stars are 3 at ≥85% first-try and 2 at ≥60%. The hub shows total stars.
+  - Stickers (faceless SVGs):
+    - one per lesson, which turns gold with 3 ★
+    - a medal per review
+    - lanterns for a 3/7/14/30-day streak
+    - moons for 10/30/60/100/150 ★
+  - The sticker page opens from the 🎖️ chip or with `?stickers`.
+  - Daily streak 🏮: play on consecutive days.
+  - Certificate per completed lesson: the child types a name (kept on the device), then downloads a PNG or prints it.
+- **Voices:** Class 1 uses **Emma** for English (`oClOrzqamOXmtcB8iqTj`) and **Habibah** for Arabic (`w4LX7bK479eHGM1k15Em`) on `eleven_multilingual_v2`. **Riaz (`PZtJ1ekBnsKhMGPmdSUk`) is reserved for the higher classes.** Do not mix voices inside Class 1.
+- **Voice pipeline (Class 1):**
+  1. `node tools/build_voice_manifest_class1.js` writes the full clip list and the new-only list.
+  2. `python3 tools/make_batches_class1.py` builds the batches with `<break time="1s"/>`.
+  3. Generate each batch to `voice-raw/<name>.mp3`.
+  4. `python3 tools/align_split.py <batch…>` splits the clips. It uses DP alignment on the silences, weighted by text length, and is more robust than `split_batches.py`. It also writes `audio/manifest.js`.
+  - Breaks are billed as characters. "." separators are cheaper but do not split reliably, so do not use them.
+- **Test:** `cd site && python3 -m http.server 8765 &` then `python3 test_class1.py [url] [level,ids]`.
+  - It plays every level on desktop, phone and tablet, and screenshots the hub, bubble win, stickers and certificate into `screenshots-class1/`.
+  - It reports `MISSING_CLIP`.
 
+## Earlier notes (first build, lessons 4–5)
 ## Sources (Class 1)
 Madrasah Teacher mirror: https://madrasahteacher.com/2020/04/17/grade-1-tas-heel-syllabus-links/
 | Book | PDF | Lesson 4 | Lesson 5 |

@@ -28,7 +28,7 @@ window.ULOOM_DATA = {
         "Nooh {A} and the building of the ark"
       ],
       rounds: [
-        { s:"quran", type:"intro", letters:[["جَ","ja"],["شَ","sha"],["يَ","ya"]], say:"Lesson 4 letters. Ja. Sha. Ya." },
+        { s:"quran", type:"intro", letters:[["جَ","ja"],["شَ","sha"],["يَ","ya"]], say:"Lesson 4 letters." },
         { s:"quran", type:"letter", target:["جَ","ja"], pool:["جَ","شَ","يَ","بَ","مَ","نَ"] },
         { s:"quran", type:"letter", target:["شَ","sha"], pool:["جَ","شَ","يَ","فَ","وَ","لَ"] },
         { s:"quran", type:"letter", target:["يَ","ya"], pool:["جَ","شَ","يَ","رَ","بَ","نَ"] },
@@ -66,7 +66,7 @@ window.ULOOM_DATA = {
         "Ibraheem {A} only worshipped one Allaah"
       ],
       rounds: [
-        { s:"quran", type:"intro", letters:[["تَ","ta"],["دَ","da"],["طَ","taw"]], say:"Lesson 5 letters. Ta. Da. Taw, the heavy one." },
+        { s:"quran", type:"intro", letters:[["تَ","ta"],["دَ","da"],["طَ","taw"]], say:"Lesson 5 letters." },
         { s:"quran", type:"letter", target:["تَ","ta"], pool:["تَ","دَ","طَ","بَ","نَ","يَ"] },
         { s:"quran", type:"letter", target:["دَ","da"], pool:["تَ","دَ","طَ","رَ","جَ","لَ"] },
         { s:"quran", type:"letter", target:["طَ","taw"], pool:["تَ","دَ","طَ","شَ","مَ","فَ"] },

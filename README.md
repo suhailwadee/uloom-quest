@@ -45,3 +45,14 @@ Scoring: 10 ★ first try, 5 ★ after a mistake. Stars: ≥85% first-try = 3, �
 1. Copy `site/class1-lessons-4-5` to `site/classN-lessons-X-Y` and rewrite `data.js` from the book.
 2. Add a link in `site/index.html`.
 3. Run `test_game.py` against the local server, check the screenshots, then commit and push (Pages redeploys in about a minute).
+
+## Voice (ElevenLabs, added 24 Nov 2026)
+- Every spoken line is a recorded MP3 in `site/class1-lessons-4-5/audio/<id>.mp3`. The id is a hash of the language and text (`voice.js` `UQV.id`), and `audio/manifest.js` lists the ids that exist. If a clip is missing, the game falls back to device speech and logs `MISSING_CLIP` to the console. The test fails on that warning.
+- English voice: **Emma - Bright Kids Educator** (`oClOrzqamOXmtcB8iqTj`). Arabic voice: **Habibah**, young female MSA (`w4LX7bK479eHGM1k15Em`). Both use the `eleven_multilingual_v2` model and were generated through the ElevenLabs MCP connector (flow `Eg4YxZZPoE1J7RnvlEKI`).
+- Pipeline:
+  1. `node tools/build_voice_manifest.js` lists every clip in `tools/voice_clips.json`. It must mirror the `speak()` calls in game.js.
+  2. Make batches (`tools/batches.json`) with lines joined by `<break time="1.5s" />`.
+  3. Generate one ElevenLabs take per batch and save it to `voice-raw/<batch>.mp3`.
+  4. `python3 tools/split_batches.py` splits each batch on its N−1 longest silences, trims, loudness-normalises and encodes mono 24 kHz 40 kbps MP3. It also writes the manifest.
+- English pronunciation tweaks are in `voice.js` `norm()`: {T} → "ta'ala", {S} → "sallallahu alayhi wa sallam", {A} → "alayhis salaam", Allaah → Allah, Nabee → Nabi.
+- For a new lesson, run steps 1–4 for the new texts only. Clips are keyed by text, so existing clips are reused.

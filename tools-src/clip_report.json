@@ -1,0 +1,614 @@
+[
+ {
+  "id": "en-1w20053",
+  "batch": "en0",
+  "dur": 1.3,
+  "bytes": 6716
+ },
+ {
+  "id": "en-18q9z7w",
+  "batch": "en0",
+  "dur": 0.65,
+  "bytes": 3476
+ },
+ {
+  "id": "en-1n08mis",
+  "batch": "en0",
+  "dur": 1.22,
+  "bytes": 6356
+ },
+ {
+  "id": "en-5yqa6i",
+  "batch": "en0",
+  "dur": 0.55,
+  "bytes": 2996
+ },
+ {
+  "id": "en-10t65iz",
+  "batch": "en0",
+  "dur": 0.82,
+  "bytes": 4316
+ },
+ {
+  "id": "en-1mtbr1w",
+  "batch": "en0",
+  "dur": 0.6,
+  "bytes": 3236
+ },
+ {
+  "id": "en-1cxk9y2",
+  "batch": "en0",
+  "dur": 0.58,
+  "bytes": 3116
+ },
+ {
+  "id": "en-qxxry3",
+  "batch": "en0",
+  "dur": 0.77,
+  "bytes": 4076
+ },
+ {
+  "id": "en-10dexwt",
+  "batch": "en0",
+  "dur": 0.67,
+  "bytes": 3596
+ },
+ {
+  "id": "en-19ha3tj",
+  "batch": "en0",
+  "dur": 0.53,
+  "bytes": 2876
+ },
+ {
+  "id": "en-mtyt8h",
+  "batch": "en0",
+  "dur": 0.6,
+  "bytes": 3236
+ },
+ {
+  "id": "en-1swoy12",
+  "batch": "en0",
+  "dur": 0.72,
+  "bytes": 3836
+ },
+ {
+  "id": "en-knhpbs",
+  "batch": "en0",
+  "dur": 0.43,
+  "bytes": 2396
+ },
+ {
+  "id": "en-15472nh",
+  "batch": "en0",
+  "dur": 1.61,
+  "bytes": 8276
+ },
+ {
+  "id": "en-55g0c3",
+  "batch": "en0",
+  "dur": 1.42,
+  "bytes": 7316
+ },
+ {
+  "id": "en-1ajjphx",
+  "batch": "en0",
+  "dur": 2.93,
+  "bytes": 14876
+ },
+ {
+  "id": "en-1p7ohl9",
+  "batch": "en1",
+  "dur": 1.75,
+  "bytes": 8996
+ },
+ {
+  "id": "en-cj5sts",
+  "batch": "en1",
+  "dur": 4.97,
+  "bytes": 25076
+ },
+ {
+  "id": "en-ooknop",
+  "batch": "en1",
+  "dur": 2.74,
+  "bytes": 13916
+ },
+ {
+  "id": "en-1qw3zmk",
+  "batch": "en1",
+  "dur": 2.62,
+  "bytes": 13316
+ },
+ {
+  "id": "en-dkg2ya",
+  "batch": "en1",
+  "dur": 2.57,
+  "bytes": 13076
+ },
+ {
+  "id": "en-nn6psl",
+  "batch": "en1",
+  "dur": 2.3,
+  "bytes": 11756
+ },
+ {
+  "id": "en-1xl5fcj",
+  "batch": "en1",
+  "dur": 6.79,
+  "bytes": 34196
+ },
+ {
+  "id": "en-1rnjkke",
+  "batch": "en1",
+  "dur": 3.74,
+  "bytes": 18956
+ },
+ {
+  "id": "en-vn8mm2",
+  "batch": "en1",
+  "dur": 3.43,
+  "bytes": 17396
+ },
+ {
+  "id": "en-1cyfhem",
+  "batch": "en1",
+  "dur": 4.1,
+  "bytes": 20756
+ },
+ {
+  "id": "en-1axvbsw",
+  "batch": "en1",
+  "dur": 1.03,
+  "bytes": 5396
+ },
+ {
+  "id": "en-2t4xxh",
+  "batch": "en1",
+  "dur": 3.36,
+  "bytes": 17036
+ },
+ {
+  "id": "en-ut3bdk",
+  "batch": "en1",
+  "dur": 1.9,
+  "bytes": 9716
+ },
+ {
+  "id": "en-1vpzxp0",
+  "batch": "en1",
+  "dur": 3.96,
+  "bytes": 20036
+ },
+ {
+  "id": "en-125yw23",
+  "batch": "en1",
+  "dur": 1.97,
+  "bytes": 10076
+ },
+ {
+  "id": "en-oy8hkc",
+  "batch": "en1",
+  "dur": 1.54,
+  "bytes": 7916
+ },
+ {
+  "id": "en-x78lgw",
+  "batch": "en2",
+  "dur": 5.14,
+  "bytes": 25916
+ },
+ {
+  "id": "en-2dw7zd",
+  "batch": "en2",
+  "dur": 3.55,
+  "bytes": 17996
+ },
+ {
+  "id": "en-js1a0k",
+  "batch": "en2",
+  "dur": 2.33,
+  "bytes": 11876
+ },
+ {
+  "id": "en-1jidxla",
+  "batch": "en2",
+  "dur": 2.02,
+  "bytes": 10316
+ },
+ {
+  "id": "en-18k4ogp",
+  "batch": "en2",
+  "dur": 2.74,
+  "bytes": 13916
+ },
+ {
+  "id": "en-vs6h41",
+  "batch": "en2",
+  "dur": 5.23,
+  "bytes": 26396
+ },
+ {
+  "id": "en-1dmutc8",
+  "batch": "en2",
+  "dur": 3.17,
+  "bytes": 16076
+ },
+ {
+  "id": "en-1a9aotf",
+  "batch": "en2",
+  "dur": 2.06,
+  "bytes": 10556
+ },
+ {
+  "id": "en-k6hsz4",
+  "batch": "en2",
+  "dur": 1.73,
+  "bytes": 8876
+ },
+ {
+  "id": "en-1ff5xb1",
+  "batch": "en2",
+  "dur": 1.49,
+  "bytes": 7676
+ },
+ {
+  "id": "en-1wfxqei",
+  "batch": "en2",
+  "dur": 1.99,
+  "bytes": 10196
+ },
+ {
+  "id": "en-mej684",
+  "batch": "en2",
+  "dur": 1.63,
+  "bytes": 8396
+ },
+ {
+  "id": "en-9a4msc",
+  "batch": "en2",
+  "dur": 4.08,
+  "bytes": 20636
+ },
+ {
+  "id": "en-fga281",
+  "batch": "en2",
+  "dur": 2.59,
+  "bytes": 13196
+ },
+ {
+  "id": "en-dpt1ki",
+  "batch": "en2",
+  "dur": 6.0,
+  "bytes": 30236
+ },
+ {
+  "id": "en-1kw4hqo",
+  "batch": "en2",
+  "dur": 2.78,
+  "bytes": 14156
+ },
+ {
+  "id": "en-5ceio6",
+  "batch": "en3",
+  "dur": 2.5,
+  "bytes": 12716
+ },
+ {
+  "id": "en-pj82ro",
+  "batch": "en3",
+  "dur": 2.71,
+  "bytes": 13796
+ },
+ {
+  "id": "en-oh5uk0",
+  "batch": "en3",
+  "dur": 2.78,
+  "bytes": 14156
+ },
+ {
+  "id": "en-150xllg",
+  "batch": "en3",
+  "dur": 3.34,
+  "bytes": 16916
+ },
+ {
+  "id": "en-1l264zq",
+  "batch": "en3",
+  "dur": 1.78,
+  "bytes": 9116
+ },
+ {
+  "id": "en-o3nlqm",
+  "batch": "en3",
+  "dur": 2.62,
+  "bytes": 13316
+ },
+ {
+  "id": "en-uiyr3p",
+  "batch": "en3",
+  "dur": 3.24,
+  "bytes": 16436
+ },
+ {
+  "id": "en-1q2vm2m",
+  "batch": "en3",
+  "dur": 3.84,
+  "bytes": 19436
+ },
+ {
+  "id": "en-w8o30b",
+  "batch": "en3",
+  "dur": 3.62,
+  "bytes": 18356
+ },
+ {
+  "id": "en-18s2poa",
+  "batch": "en3",
+  "dur": 1.97,
+  "bytes": 10076
+ },
+ {
+  "id": "en-10l9oq4",
+  "batch": "en3",
+  "dur": 3.0,
+  "bytes": 15236
+ },
+ {
+  "id": "en-1t8a1g4",
+  "batch": "en3",
+  "dur": 2.66,
+  "bytes": 13556
+ },
+ {
+  "id": "en-17c27g8",
+  "batch": "en3",
+  "dur": 1.97,
+  "bytes": 10076
+ },
+ {
+  "id": "ar-2tdpew",
+  "batch": "ar0",
+  "dur": 0.38,
+  "bytes": 2156
+ },
+ {
+  "id": "ar-2tdp80",
+  "batch": "ar0",
+  "dur": 0.43,
+  "bytes": 2396
+ },
+ {
+  "id": "ar-2tdm1a",
+  "batch": "ar0",
+  "dur": 0.41,
+  "bytes": 2276
+ },
+ {
+  "id": "ar-2tdpbg",
+  "batch": "ar0",
+  "dur": 0.38,
+  "bytes": 2156
+ },
+ {
+  "id": "ar-2tdli9",
+  "batch": "ar0",
+  "dur": 0.36,
+  "bytes": 2036
+ },
+ {
+  "id": "ar-2tdlj6",
+  "batch": "ar0",
+  "dur": 0.43,
+  "bytes": 2396
+ },
+ {
+  "id": "ar-2tdlet",
+  "batch": "ar0",
+  "dur": 0.41,
+  "bytes": 2276
+ },
+ {
+  "id": "ar-2tdlzg",
+  "batch": "ar0",
+  "dur": 0.41,
+  "bytes": 2276
+ },
+ {
+  "id": "ar-2tdlhc",
+  "batch": "ar0",
+  "dur": 0.46,
+  "bytes": 2516
+ },
+ {
+  "id": "ar-2tdp1x",
+  "batch": "ar0",
+  "dur": 0.36,
+  "bytes": 2036
+ },
+ {
+  "id": "ar-vds72x",
+  "batch": "ar0",
+  "dur": 0.96,
+  "bytes": 5036
+ },
+ {
+  "id": "ar-1t7i58u",
+  "batch": "ar0",
+  "dur": 1.1,
+  "bytes": 5756
+ },
+ {
+  "id": "ar-yka93h",
+  "batch": "ar0",
+  "dur": 1.1,
+  "bytes": 5756
+ },
+ {
+  "id": "ar-ccg7kr",
+  "batch": "ar0",
+  "dur": 0.62,
+  "bytes": 3356
+ },
+ {
+  "id": "ar-cfrq1a",
+  "batch": "ar1",
+  "dur": 0.53,
+  "bytes": 2876
+ },
+ {
+  "id": "ar-ccw6fa",
+  "batch": "ar1",
+  "dur": 0.46,
+  "bytes": 2516
+ },
+ {
+  "id": "ar-ccguzm",
+  "batch": "ar1",
+  "dur": 0.46,
+  "bytes": 2516
+ },
+ {
+  "id": "ar-cffeun",
+  "batch": "ar1",
+  "dur": 0.53,
+  "bytes": 2876
+ },
+ {
+  "id": "ar-ccun2g",
+  "batch": "ar1",
+  "dur": 0.5,
+  "bytes": 2756
+ },
+ {
+  "id": "ar-cciecg",
+  "batch": "ar1",
+  "dur": 0.48,
+  "bytes": 2636
+ },
+ {
+  "id": "ar-cflxbq",
+  "batch": "ar1",
+  "dur": 0.55,
+  "bytes": 2996
+ },
+ {
+  "id": "ar-79p8g8",
+  "batch": "ar1",
+  "dur": 0.72,
+  "bytes": 3836
+ },
+ {
+  "id": "ar-1np80aj",
+  "batch": "ar1",
+  "dur": 1.18,
+  "bytes": 6116
+ },
+ {
+  "id": "ar-5xfe0p",
+  "batch": "ar1",
+  "dur": 1.37,
+  "bytes": 7076
+ },
+ {
+  "id": "ar-1qlgo3u",
+  "batch": "ar1",
+  "dur": 3.0,
+  "bytes": 15236
+ },
+ {
+  "id": "ar-cfrqbn",
+  "batch": "ar1",
+  "dur": 0.48,
+  "bytes": 2636
+ },
+ {
+  "id": "ar-cflx8a",
+  "batch": "ar1",
+  "dur": 0.55,
+  "bytes": 2996
+ },
+ {
+  "id": "ar-ccw6kk",
+  "batch": "ar1",
+  "dur": 0.48,
+  "bytes": 2636
+ },
+ {
+  "id": "ar-ccd8tb",
+  "batch": "ar2",
+  "dur": 0.6,
+  "bytes": 3236
+ },
+ {
+  "id": "ar-2tdmsu",
+  "batch": "ar2",
+  "dur": 0.41,
+  "bytes": 2276
+ },
+ {
+  "id": "ar-2tdpe3",
+  "batch": "ar2",
+  "dur": 0.5,
+  "bytes": 2756
+ },
+ {
+  "id": "ar-2tdp77",
+  "batch": "ar2",
+  "dur": 0.31,
+  "bytes": 1796
+ },
+ {
+  "id": "ar-cfot4d",
+  "batch": "ar2",
+  "dur": 0.5,
+  "bytes": 2756
+ },
+ {
+  "id": "ar-cdj7b9",
+  "batch": "ar2",
+  "dur": 0.53,
+  "bytes": 2876
+ },
+ {
+  "id": "ar-cfm1bp",
+  "batch": "ar2",
+  "dur": 0.53,
+  "bytes": 2876
+ },
+ {
+  "id": "ar-ccieau",
+  "batch": "ar2",
+  "dur": 0.58,
+  "bytes": 3116
+ },
+ {
+  "id": "ar-ccguuc",
+  "batch": "ar2",
+  "dur": 0.58,
+  "bytes": 3116
+ },
+ {
+  "id": "ar-cciebn",
+  "batch": "ar2",
+  "dur": 0.53,
+  "bytes": 2876
+ },
+ {
+  "id": "ar-js331j",
+  "batch": "ar2",
+  "dur": 0.7,
+  "bytes": 3716
+ },
+ {
+  "id": "ar-cfrpe4",
+  "batch": "ar2",
+  "dur": 0.55,
+  "bytes": 2996
+ },
+ {
+  "id": "ar-1q1kdas",
+  "batch": "ar2",
+  "dur": 1.3,
+  "bytes": 6716
+ }
+]

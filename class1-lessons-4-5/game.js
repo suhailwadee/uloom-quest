@@ -40,20 +40,33 @@ const sfx = {
   bad: () => tone(220, 110, .25, 'triangle', .25),
   whoosh
 };
-let voices = [];
-const loadVoices = () => { voices = speechSynthesis.getVoices ? speechSynthesis.getVoices() : []; };
-if ('speechSynthesis' in window) { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
-function speak(text, lang = 'en') {
-  if (!soundOn || !('speechSynthesis' in window) || !text) return;
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  const v = voices.find(v => v.lang && v.lang.toLowerCase().startsWith(lang) && /female|samantha|google|zira|karen|moira|tessa/i.test(v.name)) || voices.find(v => v.lang && v.lang.toLowerCase().startsWith(lang));
-  if (v) u.voice = v; u.lang = v ? v.lang : (lang === 'ar' ? 'ar-SA' : 'en-GB');
-  u.rate = lang === 'ar' ? .75 : .95; u.pitch = 1.1;
-  speechSynthesis.speak(u);
+/* Recorded ElevenLabs voice clips (audio/<id>.mp3, ids from voice.js); device TTS only as a fallback */
+const CLIPS = new Set(window.UQ_CLIPS || []);
+const voiceEl = new Audio(); voiceEl.preload = 'auto';
+let seqToken = 0, unlocked = false;
+function unlockAudio() { if (unlocked) return; unlocked = true; try { voiceEl.src = 'audio/silence.mp3'; voiceEl.play().catch(() => {}); } catch (e) {} }
+function stopVoice() { seqToken++; try { voiceEl.pause(); } catch (e) {} if (window.speechSynthesis) speechSynthesis.cancel(); }
+function playClip(id, tok) {
+  return new Promise(res => { if (tok !== seqToken) return res();
+    let done = false; const fin = () => { if (!done) { done = true; res(); } };
+    voiceEl.onended = fin; voiceEl.onerror = fin; voiceEl.src = 'audio/' + id + '.mp3';
+    voiceEl.play().catch(fin); setTimeout(fin, 15000); });
 }
-const hasArabicVoice = () => voices.some(v => v.lang && v.lang.toLowerCase().startsWith('ar'));
-function speakLetter(ar, tr) { hasArabicVoice() ? speak(ar, 'ar') : speak(tr, 'en'); }
+function ttsFallback(seg) {
+  return new Promise(res => { if (!('speechSynthesis' in window)) return res();
+    const u = new SpeechSynthesisUtterance(seg.text); u.lang = seg.lang === 'ar' ? 'ar-SA' : 'en-GB'; u.rate = .95;
+    u.onend = u.onerror = () => res(); speechSynthesis.speak(u); setTimeout(res, 8000); });
+}
+async function speak(parts) {
+  if (!soundOn) return; stopVoice(); const tok = seqToken;
+  const segs = [].concat(parts).filter(Boolean).flatMap(p => UQV.segments(p));
+  for (const s of segs) { if (tok !== seqToken || !soundOn) return;
+    const id = UQV.id(s);
+    if (CLIPS.has(id)) await playClip(id, tok); else { console.warn('MISSING_CLIP', id, s.lang, s.text); await ttsFallback(s); } }
+}
+const speakLetter = ar => speak(ar);
+function prefetchClips() { let i = 0; const ids = [...CLIPS]; (function next() { if (i >= ids.length) return; fetch('audio/' + ids[i++] + '.mp3').catch(() => {}).finally(() => setTimeout(next, 30)); })(); }
+window.__uqVoice = { speak, CLIPS, el: voiceEl };
 
 /* ---------- background + fx ---------- */
 const fl = $('#floaters');
@@ -89,7 +102,7 @@ const center = el => { const r = el.getBoundingClientRect(); return [r.left + r.
 const topbar = $('#topbar'), progFill = $('#progFill'), scoreEl = $('#score'), soundBtn = $('#soundBtn');
 const setSoundIcon = () => soundBtn.textContent = soundOn ? '🔊' : '🔈';
 setSoundIcon();
-soundBtn.onclick = () => { soundOn = !soundOn; localStorage.setItem('uq_sound', soundOn ? 'on' : 'off'); setSoundIcon(); if (!soundOn && window.speechSynthesis) speechSynthesis.cancel(); };
+soundBtn.onclick = () => { soundOn = !soundOn; localStorage.setItem('uq_sound', soundOn ? 'on' : 'off'); setSoundIcon(); unlockAudio(); if (!soundOn) stopVoice(); };
 $('#homeBtn').onclick = () => { cleanup(); showMap(); };
 function setScore(v, bump) { scoreEl.textContent = '★ ' + v; if (bump) { scoreEl.classList.remove('bump'); void scoreEl.offsetWidth; scoreEl.classList.add('bump'); } }
 
@@ -97,7 +110,7 @@ const NOOR = `<svg class="noor" viewBox="0 0 100 100"><g fill="#E7B008" stroke="
 const guide = msg => `<div class="guide">${NOOR}<div class="bubble">${msg}</div></div>`;
 
 let cleanupFns = [];
-function cleanup() { cleanupFns.forEach(f => f()); cleanupFns = []; if (window.speechSynthesis) speechSynthesis.cancel(); }
+function cleanup() { cleanupFns.forEach(f => f()); cleanupFns = []; stopVoice(); }
 const best = id => +(localStorage.getItem('uq_best_' + id) || 0);
 
 /* ---------- screens ---------- */
@@ -110,7 +123,7 @@ function showSplash() {
     <p class="ar bism" style="color:#fff;font-size:30px;margin:0">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</p>
     <button class="big-btn" id="play">▶ Play</button>
     <p class="foot">Tap to play. Turn the sound on to hear the questions.</p></section>`;
-  $('#play').onclick = () => { ctx(); sfx.whoosh(); speak('Bismillah! Let us play.'); showMap(); };
+  $('#play').onclick = () => { ctx(); unlockAudio(); sfx.whoosh(); showMap(); setTimeout(() => speak('Bismillah! Let us play.'), 50); prefetchClips(); };
 }
 function showMap() {
   topbar.classList.add('hidden');
@@ -150,17 +163,17 @@ function nextRound() {
     <div class="feedback" id="fb"></div></section>`;
   const rc = $('#rc'); let mistakes = 0;
   const api = {
-    wrong(el) { mistakes++; sfx.bad(); if (el) { el.classList.remove('bad'); void el.offsetWidth; el.classList.add('bad'); }
-      const fb = $('#fb'); fb.textContent = ['Try again!', 'Almost! Try again', 'You can do it!'][mistakes % 3]; },
+    wrong(el, opts) { mistakes++; sfx.bad(); if (el) { el.classList.remove('bad'); void el.offsetWidth; el.classList.add('bad'); }
+      const fb = $('#fb'); const line = ['Try again!', 'Almost! Try again', 'You can do it!'][mistakes % 3]; fb.textContent = line; speak(opts && opts.say ? [opts.say, line] : line); },
     async right(el, opts = {}) {
       sfx.good(); if (el) { const [x, y] = center(el); burst(x, y); }
-      if (opts.partial) return;
+      if (opts.partial) { if (opts.say) speak(opts.say); return; }
       const pts = r.type === 'intro' ? 0 : (mistakes === 0 ? 10 : 5);
       if (r.type !== 'intro' && mistakes === 0) S.first++;
       S.score += pts; if (pts) setScore(S.score, true);
       const praise = ['MashaAllah!', 'Excellent!', 'Well done!', 'Super star!', 'Brilliant!'][Math.random() * 5 | 0];
       $('#fb').innerHTML = pts ? `${praise} +${pts} ★` : '';
-      if (pts) speak(praise.replace('!', ''));
+      if (pts) speak([opts.say, praise, r.why].filter(Boolean));
       if (r.why) rc.insertAdjacentHTML('beforeend', `<p class="why">💡 ${fmt(r.why)}</p>`);
       rc.insertAdjacentHTML('beforeend', `<div style="text-align:center"><button class="big-btn next" id="nx">Next ➜</button></div>`);
       rc.querySelectorAll('.opt,.ball').forEach(b => b.style.pointerEvents = 'none');
@@ -175,8 +188,8 @@ const R = {
   intro(r, rc, api) {
     rc.innerHTML = `${guide('New letters! Tap each one to hear it.')}
       <div class="intro-letters" style="margin:16px 0">${r.letters.map((l, i) => `<button class="lt" data-i="${i}" style="animation-delay:${i * .2}s"><span class="ar">${l[0]}</span><small>${l[1]}</small></button>`).join('')}</div>`;
-    rc.querySelectorAll('.lt').forEach(b => b.onclick = () => { sfx.pop(); const l = r.letters[b.dataset.i]; speakLetter(l[0], l[1]); const [x, y] = center(b); burst(x, y, 12); });
-    speak(r.say);
+    rc.querySelectorAll('.lt').forEach(b => b.onclick = () => { sfx.pop(); const l = r.letters[b.dataset.i]; speakLetter(l[0]); const [x, y] = center(b); burst(x, y, 12); });
+    speak([r.say].concat(r.letters.map(l => l[0])));
     setTimeout(() => api.right(null), 600);
   },
   letter(r, rc, api) {
@@ -190,7 +203,7 @@ const R = {
       arena.appendChild(b);
       const gx = i % 3, gy = i / 3 | 0, cw = (W() - 100) / 2, ch = (H() - 100) / 2;
       const o = { el: b, t, x: gx * cw + Math.random() * 10, y: gy * ch * 1.6 + Math.random() * 20, vx: (Math.random() - .5) * 2.2, vy: (Math.random() - .5) * 2.2 };
-      b.onclick = () => { if (t === ar) { sfx.pop(); b.classList.add('pop'); o.dead = true; speakLetter(ar, tr); api.right(b); } else { api.wrong(b); b.classList.add('no'); setTimeout(() => b.classList.remove('no'), 400); } };
+      b.onclick = () => { if (t === ar) { sfx.pop(); b.classList.add('pop'); o.dead = true; api.right(b, { say: ar }); } else { api.wrong(b, { say: t }); b.classList.add('no'); setTimeout(() => b.classList.remove('no'), 400); } };
       return o;
     });
     let run = true;
@@ -201,26 +214,26 @@ const R = {
         o.el.style.left = o.x + 'px'; o.el.style.top = o.y + 'px'; }
       requestAnimationFrame(loop); })();
     cleanupFns.push(() => run = false);
-    $('#sy').onclick = () => speakLetter(ar, tr);
-    setTimeout(() => speak('Pop the bubble ' + tr), 300);
+    $('#sy').onclick = () => speakLetter(ar);
+    setTimeout(() => speak(['Pop the bubble', ar]), 300);
   },
   wordfind(r, rc, api) {
     const [ar, tr] = r.target;
     rc.innerHTML = `${guide(`Which word has <b class="ar" style="color:#e8590c;font-size:1.4em">${ar}</b> (${tr})?`)}
       <div class="words" style="margin-top:14px">${r.words.map((w, i) => `<button class="opt" data-i="${i}">${w}</button>`).join('')}</div>`;
-    rc.querySelectorAll('.opt').forEach(b => b.onclick = () => { if (+b.dataset.i === r.answer) { b.classList.add('good'); api.right(b); } else api.wrong(b); });
-    speak('Which word has ' + tr + '?');
+    rc.querySelectorAll('.opt').forEach(b => b.onclick = () => { const w = r.words[+b.dataset.i]; if (+b.dataset.i === r.answer) { b.classList.add('good'); api.right(b, { say: w }); } else api.wrong(b, { say: w }); });
+    speak(['Which word has', ar]);
   },
   mcq(r, rc, api) {
     const order = shuffle(r.options.map((o, i) => i));
     rc.innerHTML = `<p class="q">${fmt(r.q)}</p><div class="opts">${order.map(i => `<button class="opt${r.ar ? ' ar' : ''}" data-i="${i}">${fmt(r.options[i])}</button>`).join('')}</div>`;
     rc.querySelectorAll('.opt').forEach(b => b.onclick = () => { if (+b.dataset.i === r.answer) { b.classList.add('good'); api.right(b); } else { api.wrong(b); b.classList.add('done'); } });
-    speak(sayText(r.q) || 'What does it mean?');
+    speak(r.q);
   },
   tf(r, rc, api) {
     rc.innerHTML = `<p class="q">${fmt(r.q)}</p><div class="tf"><button class="opt" data-v="1">✔ True</button><button class="opt" data-v="0">✖ False</button></div>`;
     rc.querySelectorAll('.opt').forEach(b => b.onclick = () => { if ((b.dataset.v === '1') === r.answer) { b.classList.add('good'); api.right(b); } else { api.wrong(b); b.classList.add('done'); } });
-    speak(sayText(r.q) + ' True or false?');
+    speak([r.q, 'True or false?']);
   },
   car(r, rc, api) {
     const stroke = r.color === '#ffffff' ? '#555' : '#111';
@@ -233,7 +246,7 @@ const R = {
       <div class="tf"><button class="opt" data-v="1">✔ Yes</button><button class="opt" data-v="0">✖ No</button></div>`;
     sfx.whoosh();
     rc.querySelectorAll('.opt').forEach(b => b.onclick = () => { if ((b.dataset.v === '1') === r.answer) { b.classList.add('good'); api.right(b); } else { api.wrong(b); b.classList.add('done'); } });
-    speak('Be truthful! Is this car black?');
+    speak(r.q);
   },
   match(r, rc, api) {
     const left = shuffle(r.pairs.map((p, i) => i)), right = shuffle(r.pairs.map((p, i) => i));
@@ -243,14 +256,14 @@ const R = {
       <div class="col">${right.map(i => `<button class="opt${isAr(r.pairs[i][1]) ? ' arx' : ''}" data-side="R" data-i="${i}">${fmt(r.pairs[i][1])}</button>`).join('')}</div></div>`;
     let sel = null, done = 0;
     rc.querySelectorAll('.opt').forEach(b => b.onclick = () => {
-      sfx.tap();
+      sfx.tap(); if (b.classList.contains('arx')) speak(b.dataset.side === 'L' ? r.pairs[+b.dataset.i][0] : r.pairs[+b.dataset.i][1]);
       if (!sel || sel.dataset.side === b.dataset.side) { if (sel) sel.classList.remove('sel'); sel = b; b.classList.add('sel'); return; }
       if (sel.dataset.i === b.dataset.i) { [sel, b].forEach(x => { x.classList.remove('sel'); x.classList.add('good'); x.style.pointerEvents = 'none'; });
         done++; const last = done === r.pairs.length; api.right(b, { partial: !last }); }
       else { api.wrong(b); sel.classList.remove('sel'); }
       sel = null;
     });
-    speak(sayText(r.q) || 'Match them up');
+    speak(r.q);
   },
   order(r, rc, api) {
     const idx = shuffle(r.items.map((x, i) => i));
@@ -262,7 +275,7 @@ const R = {
         const last = step === r.items.length; api.right(b, { partial: !last }); if (!last) sfx.pop(); }
       else api.wrong(b);
     });
-    speak(sayText(r.q));
+    speak(r.q);
   },
   sort(r, rc, api) {
     const items = shuffle(r.items); let k = 0;
@@ -270,7 +283,7 @@ const R = {
       rc.innerHTML = `<p class="q">${fmt(r.q)}</p><p style="text-align:center;margin:0">${k + 1} of ${items.length}</p>
         <div class="card sortcard" style="box-shadow:0 6px 0 #cfd8d3;background:#fff">${fmt(items[k][0])}</div>
         <div class="sortbtns" style="margin-top:14px"><button class="opt" data-v="1" style="color:#1f9d6b">✔ Good</button><button class="opt" data-v="0" style="color:#e03131">✖ Bad</button></div>`;
-      speak(sayText(items[k][0]) + '. Good or bad?');
+      speak([items[k][0], 'Good or bad?']);
       rc.querySelectorAll('.opt').forEach(b => b.onclick = async () => {
         if ((b.dataset.v === '1') === items[k][1]) { b.classList.add('good'); const last = k === items.length - 1; api.right(b, { partial: !last });
           if (!last) { rc.querySelectorAll('.opt').forEach(x => x.style.pointerEvents = 'none'); await sleep(650); k++; draw(); } }

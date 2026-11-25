@@ -18,6 +18,7 @@ for (const L of window.UQ_LEVELS.filter(l => !l.review)) for (const r of L.round
   if (r.pool) r.pool.forEach(add);
   if (Array.isArray(r.words)) r.words.forEach(add);
   if (r.options && r.type === 'listen' && !r.sayPrompt) r.options.forEach(add);
+  if (r.options && (r.type === 'mcq' || r.type === 'dragpick')) r.options.forEach(add);
   if (r.items && (r.type === 'sort' || r.type === 'basket')) r.items.forEach(i => add(i[0]));
   if (r.voice) add(r.voice);
   if (r.cards) r.cards.forEach(c => { if (c.say) add(c.say); if (c.matchSay) add(c.matchSay); });

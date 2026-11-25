@@ -295,3 +295,6 @@ h1.title span{color:var(--gold)}
 .sslot b{width:26px;height:26px;font-size:14px}
 .sslot span{font-size:30px;min-height:32px}
 .scard.placed{display:none}
+
+/* answer being read aloud */
+.opt.hl,.pcard.hl{box-shadow:0 0 0 5px #E7B008,0 6px 0 #cfd8d3!important;transform:scale(1.03)}

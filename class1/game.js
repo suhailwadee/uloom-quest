@@ -326,6 +326,19 @@ const ICONS = [[/\b(?:Allaah|Allah|Rabb|Creator)/i, '✨'], [/\b(?:Makkah|Ka'bah
   [/\b(?:neighbou?r)/i, '🏘️'], [/\b(?:sick)/i, '💊'], [/\b(?:smile|kind|charity|mercy)/i, '💚'], [/\b(?:lie|fight|swear|argu|scream|nag|harm|hurt|selfish|waste|complain)/i, '⚠️'],
   [/\b(?:seat|elder|respect)/i, '🪑'], [/\b(?:share|give|take)/i, '🎁'], [/\b(?:sheep)/i, '🐑'], [/\b(?:star|moon)/i, '🌙']];
 const iconFor = t => { const m = ICONS.find(([re]) => re.test(t || '')); return m ? m[1] : '⭐'; };
+/* read the answer choices aloud after the question, lighting each one up while it is spoken; stops as soon as the child taps */
+/* an answer option is read aloud only when it has a recorded clip (no robot-voice fallback for options) */
+const voiced = t => (t && UQV.segments(t).every(sg => CLIPS.has(UQV.id(sg)))) ? t : null;
+async function readOpts(first, items) {
+  items = items.filter(it => voiced(it.text));
+  if (!soundOn) return; await speak(first); let mine = seqToken;
+  for (const it of items) {
+    if (seqToken !== mine || !it.el.isConnected) return;
+    await sleep(250); if (seqToken !== mine) return;
+    it.el.classList.add('hl'); await speak(it.text); it.el.classList.remove('hl'); mine = seqToken;
+    if (!soundOn) return;
+  }
+}
 const R = {
   intro(r, rc, api) {
     rc.innerHTML = `${guide(r.sounds ? 'New sounds! Tap each one to hear it.' : 'New letters! Tap each one to hear it.')}
@@ -401,8 +414,9 @@ const R = {
     const order = shuffle(r.options.map((o, i) => i));
     rc.innerHTML = `<p class="q">${fmt(r.q)}</p><div class="opts">${order.map(i => `<button class="opt${r.ar ? ' ar' : ''}" data-i="${i}">${fmt(r.options[i])}</button>`).join('')}</div>`;
     const ok = rc.querySelector(`.opt[data-i="${r.answer}"]`);
-    rc.querySelectorAll('.opt').forEach(b => b.onclick = () => { if (+b.dataset.i === r.answer) { b.classList.remove('reveal'); b.classList.add('good'); api.right(b); } else { api.wrong(b, { reveal: reveal(ok) }); b.classList.add('done'); } });
-    speak(r.q);
+    rc.querySelectorAll('.opt').forEach(b => b.onclick = () => { rc.querySelectorAll('.opt.hl').forEach(x => x.classList.remove('hl')); const said = voiced(r.options[+b.dataset.i]);
+      if (+b.dataset.i === r.answer) { b.classList.remove('reveal'); b.classList.add('good'); api.right(b, { say: said }); } else { api.wrong(b, { say: said, reveal: reveal(ok) }); b.classList.add('done'); } });
+    readOpts(r.q, order.map(i => ({ el: rc.querySelector(`.opt[data-i="${i}"]`), text: r.options[i] })));
   },
   tf(r, rc, api) {
     rc.innerHTML = `<p class="q">${fmt(r.q)}</p><div class="tf"><button class="opt" data-v="1">✔ True</button><button class="opt" data-v="0">✖ False</button></div>`;
@@ -684,9 +698,9 @@ const R = {
       <div class="pcards">${shuffle(r.options.map((o, i) => i)).map(i => `<button class="dtile pcard" data-i="${i}"><span class="pc-ic">${iconFor(r.options[i])}</span><span>${fmt(r.options[i])}</span></button>`).join('')}</div>`;
     const bk = $('#bk'), ok = rc.querySelector(`.pcard[data-i="${r.answer}"]`); let won = false;
     rc.querySelectorAll('.pcard').forEach(c => dragify(c, (t, tap) => { if (won || (!t && !tap)) return;
-      if (+c.dataset.i === r.answer) { won = true; c.classList.add('placed'); bk.classList.add('full'); bk.insertAdjacentHTML('beforeend', `<span class="in">${iconFor(r.options[r.answer])}</span>`); api.right(bk); }
-      else api.wrong(c, { reveal: reveal(ok) }); }));
-    speak([r.q, I.pick]);
+      if (+c.dataset.i === r.answer) { won = true; c.classList.add('placed'); bk.classList.add('full'); bk.insertAdjacentHTML('beforeend', `<span class="in">${iconFor(r.options[r.answer])}</span>`); api.right(bk, { say: voiced(r.options[r.answer]) }); }
+      else api.wrong(c, { say: voiced(r.options[+c.dataset.i]), reveal: reveal(ok) }); }, c => { rc.querySelectorAll('.pcard.hl').forEach(x => x.classList.remove('hl')); const v = voiced(r.options[+c.dataset.i]); if (v) speak(v); }));
+    readOpts([r.q, I.pick], [...rc.querySelectorAll('.pcard')].map(c => ({ el: c, text: r.options[+c.dataset.i] })));
   }
 };
 

@@ -14,6 +14,10 @@ The question-and-answer rounds now come with 13 touch games, chosen to fit each 
 - Every lesson mixes at least 2 game types (about 3.5 on average). Drags use pointer events, and tapping also works as a fallback. Instructions are spoken (31 new Emma clips: 13 instructions and 17 story/poem steps, plus 1 title).
 - Testing: `test_game.py` plays every round with real touch drags (CDP touch events) on phone and tablet, and with the mouse on desktop.
 
+### Voiced answer options (25 Nov 2026)
+Multiple-choice and drag-into-basket options are now read aloud after the question, each one lit up in gold while it's spoken, and an option's clip also plays when the child taps it. That's 118 new Emma clips, slowed to about 125 wpm like the rest. Options without a recorded clip stay silent; there's no robot-voice fallback for options. **Still to record** (the ElevenLabs quota ran out): the 24 options in `tools/prompt_c1opten5.txt` (Emma) and the 5 Names of Allah in `tools/prompt_c1optar0.txt` (Habibah `w4LX7bK479eHGM1k15Em`). After recording: run `align_split.py c1opten5 c1optar0` (`batches_opts.json`), then apply the atempo slowdown. The game picks them up automatically.
+Batches separated by paragraph breaks split cleanly and cost about 1 credit per character, roughly 40% cheaper than `<break>` tags.
+
 ### Voice pace fix
 The code never sped clips up (there's no playbackRate). The recordings themselves were fast, about 170–180 wpm. Each clip was slowed with ffmpeg `atempo` (pitch kept): English 0.65–0.85× aiming for about 125 wpm (0.82× for clips under 4 words), Arabic 0.88×. The unslowed originals are in `audio-orig-fast/`, and the per-clip factors are in `tools/tempo_plan.json`. **Every new clip must get the same treatment after `align_split.py`.**
 

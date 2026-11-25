@@ -3,6 +3,20 @@
 Playable, faceless, mobile-first HTML5 games built from the **Jamiatul Ulama SA Tas-heel series** and *Towards Reading the Qur'an Part 1*.
 **Live:** https://suhailwadee.github.io/uloom-quest/class1/ (book hub; each book has its own link, see below) (the old `class1-lessons-4-5/` link redirects here).
 
+## Class 1 v3: hands-on mini-games (25 Nov 2026)
+The question-and-answer rounds now come with 13 touch games, chosen to fit each book. They're built in `levels.js` (`varyQuran`, `varyBook`) and drawn in `game.js` (R.trace … R.dragpick). The content is still the book's own; no new facts were added.
+- **Qur'an:** trace the letter (canvas check), drag the sound into the basket, build the word from letter tiles, listen and say it (echo, no mic), memory pairs. Bubble pop and word-find still appear.
+- **Fiqh:** tap the right foot or hand (shown as you look down at your own feet or hands), put the Istinjaa poem steps in order, swipe true/false, drag-match, drag the answer into the basket.
+- **Aqaa-id:** swipe true/false, drag-match the poems, memory (English ↔ Arabic).
+- **Akhlaaq:** sort cards into the ✔/✖ baskets, "which one is good?" picture pairs, swipe.
+- **Ahaadeeth:** build the hadeeth from word tiles, echo, memory (hadeeth ↔ meaning), drag-match.
+- **Taa-reekh:** put the story in order (each card is voiced), tap the place on the map (Makkah, Madeenah, Egypt, sea), drag the answer into the basket.
+- Every lesson mixes at least 2 game types (about 3.5 on average). Drags use pointer events, and tapping also works as a fallback. Instructions are spoken (31 new Emma clips: 13 instructions and 17 story/poem steps, plus 1 title).
+- Testing: `test_game.py` plays every round with real touch drags (CDP touch events) on phone and tablet, and with the mouse on desktop.
+
+### Voice pace fix
+The code never sped clips up (there's no playbackRate). The recordings themselves were fast, about 170–180 wpm. Each clip was slowed with ffmpeg `atempo` (pitch kept): English 0.65–0.85× aiming for about 125 wpm (0.82× for clips under 4 words), Arabic 0.88×. The unslowed originals are in `audio-orig-fast/`, and the per-clip factors are in `tools/tempo_plan.json`. **Every new clip must get the same treatment after `align_split.py`.**
+
 ## Class 1 v2: one section per book (25 Nov 2026)
 Suhail asked for each book to be separate so it is clear which topic is being taught.
 - **Hub:** `/class1/` shows one card per book. Each card has the book's short name, its exact title from the PDF cover, an icon and colour, the lesson and review count, and the stars and progress so far.

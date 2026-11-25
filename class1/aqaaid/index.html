@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<base href="../">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#124930">
+<title>Uloom Quest · Class 1 · Aqaa-id (Tas-heelul Aqaa-id 1)</title>
+<meta name="description" content="A fun, faceless learning game for Ashraful Uloom Online – Class 1, all lessons of the Tas-heel series and Towards Reading the Qur'an Part 1.">
+<link rel="icon" href="../assets/uloom-online-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@500;700&family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="bg"><div class="pattern"></div><div id="floaters"></div></div>
+<canvas id="fx"></canvas>
+<header id="topbar" class="hidden">
+  <button id="homeBtn" class="icon-btn" aria-label="Lesson map">⌂</button>
+  <div class="progress"><div id="progFill"></div></div>
+  <div id="score" class="pill">★ 0</div>
+  <button id="soundBtn" class="icon-btn" aria-label="Sound on/off">🔊</button>
+</header>
+<main id="app"></main>
+<script>window.UQ_BOOK="aqaaid";</script>
+<script src="data.js"></script>
+<script src="levels.js"></script>
+<script src="voice.js"></script>
+<script src="audio/manifest.js"></script>
+<script src="game.js"></script>
+</body>
+</html>

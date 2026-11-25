@@ -19,6 +19,20 @@ window.ULOOM_DATA = {
     aqaaid: "Tas-heelul Aqaa-id 1", fiqh: "Tas-heelul Fiqh 1", akhlaaq: "Tas-heelul Akhlaaq 1",
     hadeeth: "Tas-heelul Ahaadeeth 1", tareekh: "Tas-heelut Taa-reekh 1"
   },
+  /* Class 1 books, each its own section. title = exact title on the source PDF cover. say = spoken book name (Emma). */
+  bookList: [
+    { id: "quran",   short: "Qur'an Reader", title: "Towards Reading the Qur'an Part 1", publisher: "Lenasia Muslim Association", say: "Towards Reading the Qur'an.", icon: "📖", color: "#1f9d6b", minRounds: 0,
+      reviews: [[1,3],[4,6],[7,9],[10,11],[12,16],[17,21],[22,26],[27,31],[32,36],[37,41]],
+      parts: [["Letters and their names", 1, 11], ["More letters", 12, 22], ["Kasrah and dhammah", 23, 31], ["Sukoon, tanween and shaddah", 32, 41]] },
+    { id: "aqaaid",  short: "Aqaa-id",   title: "Tas-heelul Aqaa-id 1",   publisher: "Jamiatul Ulama SA", say: "Tas-heelul Aqaa-id.", icon: "⭐", color: "#7b5cff", minRounds: 4, reviews: [[1,4],[5,7]] },
+    { id: "fiqh",    short: "Fiqh",      title: "Tas-heelul Fiqh 1",      publisher: "Jamiatul Ulama SA", say: "Tas-heelul Fiqh.", icon: "💧", color: "#1e88e5", minRounds: 3,
+      reviews: [[1,10],[11,16],[17,24],[25,31]],
+      parts: [["Istinjaa", 1, 10], ["Keeping my body clean", 11, 16], ["Clean habits", 17, 24], ["Clean surroundings", 25, 31]] },
+    { id: "akhlaaq", short: "Akhlaaq",   title: "Tas-heelul Akhlaaq 1",   publisher: "Jamiatul Ulama SA", say: "Tas-heelul Akhlaaq.", icon: "💚", color: "#e8590c", minRounds: 3, reviews: [[1,3],[5,7]],
+      note: "Lesson 4 (My speech) is missing from the PDF." },
+    { id: "hadeeth", short: "Ahaadeeth", title: "Tas-heelul Ahaadeeth 1", publisher: "Jamiatul Ulama SA", say: "Tas-heelul Ahaadeeth.", icon: "📜", color: "#c2185b", minRounds: 3, reviews: [[1,5],[6,10]] },
+    { id: "tareekh", short: "Taa-reekh", title: "Tas-heelut Taa-reekh 1", publisher: "Jamiatul Ulama SA", say: "Tas-heelut Taa-reekh.", icon: "⛵", color: "#00897b", minRounds: 3, reviews: [[1,6],[7,11]] }
+  ],
   units: [
     { name: "Unit 1 · Lessons 1–11", from: 1, to: 11, note: "All six books" },
     { name: "Unit 2 · Lessons 12–21", from: 12, to: 21, note: "Qur'an reader + Fiqh" },

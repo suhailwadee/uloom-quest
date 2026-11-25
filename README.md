@@ -1,7 +1,46 @@
 # Uloom Quest: gamified syllabus for Ashraful Uloom Online
 
 Playable, faceless, mobile-first HTML5 games built from the **Jamiatul Ulama SA Tas-heel series** and *Towards Reading the Qur'an Part 1*.
-**Live:** https://suhailwadee.github.io/uloom-quest/class1/ (the old `class1-lessons-4-5/` link redirects here).
+**Live:** https://suhailwadee.github.io/uloom-quest/class1/ (book hub; each book has its own link, see below) (the old `class1-lessons-4-5/` link redirects here).
+
+## Class 1 v2: one section per book (25 Nov 2026)
+Suhail asked for each book to be separate so it is clear which topic is being taught.
+- **Hub:** `/class1/` shows one card per book. Each card has the book's short name, its exact title from the PDF cover, an icon and colour, the lesson and review count, and the stars and progress so far.
+- **Per-book URLs** (shareable): `/class1/quran/`, `/class1/aqaaid/`, `/class1/fiqh/`, `/class1/akhlaaq/`, `/class1/hadeeth/`, `/class1/tareekh/`.
+  - Each is a copy of `class1/index.html` with `<base href="../">` and `window.UQ_BOOK="<id>"`.
+  - `#<id>` and `?book=<id>` also work.
+  - `?level=<book>-<n>` opens a lesson directly. Old `?level=l4` / `r1` links map to `quran-4` / `quran-r1`.
+  - In-app navigation keeps the address bar on the current book via `history.replaceState`. Audio and asset paths are absolute (computed from the page base) for this reason.
+- **Books** are defined in `data.js` under `bookList` (id, short, title, publisher, say, icon, colour, reviews, parts, minRounds).
+
+| id | Book (exact title) | Lessons | Reviews |
+|---|---|---|---|
+| quran | Towards Reading the Qur'an Part 1 (Lenasia Muslim Association) | 41 | 10 |
+| aqaaid | Tas-heelul Aqaa-id 1 | 7 | 2 (1–4, 5–7) |
+| fiqh | Tas-heelul Fiqh 1 | 31 | 4 (1–10, 11–16, 17–24, 25–31) |
+| akhlaaq | Tas-heelul Akhlaaq 1 | 6 (L4 missing from the PDF) | 2 (1–3, 5–7) |
+| hadeeth | Tas-heelul Ahaadeeth 1 | 10 | 2 (1–5, 6–10) |
+| tareekh | Tas-heelut Taa-reekh 1 | 11 | 2 (1–6, 7–11) |
+
+- **Levels** (`levels.js`): ids are `<book>-<n>`, where n is the lesson number in that book. Reviews are `<book>-r<k>` and belong to their book.
+  - Short lessons get "revision of Lesson X" rounds from the same book's earlier lessons, up to `minRounds`. These reuse existing rounds and clips only.
+  - Review pools draw only from that book.
+- **Labels:** every round badge, the end screen, the certificate, the sticker labels and the certificate list read "<Book> – Lesson n", for example "Akhlaaq – Lesson 3". The full book title appears on the book map, the end screen and the certificate.
+- **Voice:** the hub says "Assalamu alaikum! Choose a book.". A book map says its book name and then "Choose a lesson.". A lesson starts with the book name before the first question.
+  - 8 new Emma clips (batch `c1books`, 255 credits).
+  - Lesson numbers are not spoken, to avoid recording 41 number clips.
+- **Storage migration:** this runs once and sets the `uq_migrated_v2` flag.
+  - Old `uq_best_l<n>` / `uq_date_l<n>` are copied to every book's Lesson n.
+  - Old `uq_best_r<k>` is copied to `quran-r<k>`, which has the same ranges.
+  - Streak, name, sound and points keys are unchanged.
+- **Stickers** are grouped per book: lesson stickers, golden stickers and review medals for each book, plus the special streak and star badges. Star moons now go up to 300 ★.
+- **Test:** `test_game.py`, the per-book version (the old one is saved as `test_game_v0_lessons45.py.bak`). Run `python3 test_game.py [base_url] [all|ids,…] [desktop|phone|tablet]`. It checks:
+  - the migration
+  - the 6 hub cards
+  - each book URL opening its own map
+  - every level played through
+  - stickers and the certificate
+  - HTTP errors and `MISSING_CLIP`
 
 ## Class 1 full build (25 Nov 2026)
 - `site/class1/` is the one game for all of Class 1.

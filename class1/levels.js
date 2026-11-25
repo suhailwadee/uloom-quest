@@ -10,7 +10,7 @@
   const COLORS = ['#1f9d6b','#7b5cff','#e8590c','#1e88e5','#c2185b','#00897b','#f59f00','#5c7cfa','#d6336c','#0ca678','#7950f2','#f76707'];
   const EMOJI = ['🌙','⭐','💧','📖','🌟','✨','🕌','📜','💚','⛵','🌴','🏮'];
   const known = [], knownWords = [];
-  const levels = [];
+  const levels = [], expanded = [];
   for (const les of D.lessons) {
     const r = rng(les.n * 7 + 3), t = les.trq || {}, out = [];
     if (t.kind === 'letters') {
@@ -46,9 +46,7 @@
       if (t.words) for (let i = 0; i < Math.min(t.sets ? 3 : 5, t.words.length); i++) out.push(listen(t.words, i * 2 % t.words.length, r));
     }
     if (t.words) t.words.forEach(w => { if (!knownWords.includes(w)) knownWords.push(w); });
-    const rounds = out.concat(les.rounds.map(x => Object.assign({}, x)));
-    levels.push({ id: 'l' + les.n, n: les.n, name: 'Lesson ' + les.n, color: COLORS[(les.n - 1) % COLORS.length], emoji: EMOJI[(les.n - 1) % EMOJI.length],
-      learned: les.learned, src: les.src, subjects: [...new Set(rounds.map(x => x.s))], rounds });
+    expanded.push({ les, quran: out, rest: les.rounds.map(x => Object.assign({}, x)) });
   }
   function listen(words, i, r) {
     const target = words[i % words.length];
@@ -56,8 +54,32 @@
     const options = shuf([target].concat(others), r);
     return { s: 'quran', type: 'listen', say: target, options, answer: options.indexOf(target) };
   }
-  for (const rv of D.reviews) levels.push(Object.assign({ review: true, color: '#E7B008', emoji: '🌟', count: 14,
-    learned: ['You revised Lessons ' + rv.from + ' to ' + rv.to + '. MashaAllah!'] }, rv));
+  /* ---- one section per book: each book has its own lessons (numbered as in that book) and its own reviews ---- */
+  const BK = D.bookList;
+  for (const b of BK) {
+    const mine = [];
+    for (const { les, quran, rest } of expanded) {
+      const own = b.id === 'quran' ? quran : rest.filter(x => x.s === b.id);
+      if (!own.length) continue;
+      // the "learned" line for this book (learned[] follows the order of src keys, skipping books missing from the PDF)
+      const keys = Object.keys(les.src).filter(k => !(les.learned.length < Object.keys(les.src).length && /missing/.test(les.src[k])));
+      const li = keys.indexOf(b.id);
+      const learned = li >= 0 && les.learned[li] ? [les.learned[li]] : [];
+      // short lessons get revision rounds from this book's earlier lessons (existing rounds and clips only)
+      let rounds = own.map(x => Object.assign({ s: b.id }, x));
+      const need = (b.minRounds || 0) - rounds.filter(x => x.type !== 'intro').length;
+      if (need > 0) {
+        const prev = mine.slice().reverse().flatMap(l => l.rounds.filter(x => !x.rev && x.type !== 'intro').map(x => Object.assign({}, x, { rev: l.n })));
+        rounds = rounds.concat(prev.slice(0, need));
+      }
+      const lv = { id: b.id + '-' + les.n, book: b.id, n: les.n, name: b.short + ' – Lesson ' + les.n, color: b.color, emoji: b.icon,
+        learned: learned.length ? learned : ['Lesson ' + les.n + ' of ' + b.title], src: les.src[b.id], subjects: [b.id], rounds };
+      mine.push(lv); levels.push(lv);
+    }
+    (b.reviews || []).forEach((rv, i) => levels.push({ id: b.id + '-r' + (i + 1), book: b.id, review: true, from: rv[0], to: rv[1],
+      name: b.short + ' – Review ' + rv[0] + '–' + rv[1], color: '#E7B008', emoji: '🌟', count: 12, subjects: [b.id],
+      learned: ['You revised ' + b.short + ' Lessons ' + rv[0] + ' to ' + rv[1] + '. MashaAllah!'] }));
+  }
   root.UQ_LEVELS = levels;
-  root.UQ_reviewPool = rv => levels.filter(l => !l.review && l.n >= rv.from && l.n <= rv.to).flatMap(l => l.rounds.filter(x => x.type !== 'intro'));
+  root.UQ_reviewPool = rv => levels.filter(l => !l.review && l.book === rv.book && l.n >= rv.from && l.n <= rv.to).flatMap(l => l.rounds.filter(x => x.type !== 'intro' && !x.rev).map(x => Object.assign({ fromLesson: l.n }, x)));
 })(typeof window !== 'undefined' ? window : globalThis);

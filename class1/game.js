@@ -1,5 +1,24 @@
 (() => {
 const D = window.ULOOM_DATA, LV = window.UQ_LEVELS;
+const BOOKS = D.bookList, BK = Object.fromEntries(BOOKS.map(b => [b.id, b]));
+const ROOT = new URL('.', document.baseURI).href;  // …/class1/ (book pages use <base href="../">)
+let curBook = null;
+const ASSET = new URL('../assets/', ROOT).href, AUD = ROOT + 'audio/';
+try { document.querySelectorAll('link[rel~=icon]').forEach(l => l.href = ASSET + 'uloom-online-logo.png'); } catch (e) {}
+/* one-time migration of the old single-path progress (l1…l41, r1…r10) to per-book levels */
+(function migrate() {
+  try {
+    if (localStorage.getItem('uq_migrated_v2')) return;
+    const up = (id, v, d) => { if (!LV.some(l => l.id === id)) return;
+      if (v > +(localStorage.getItem('uq_best_' + id) || 0)) localStorage.setItem('uq_best_' + id, v);
+      if (d && !localStorage.getItem('uq_date_' + id)) localStorage.setItem('uq_date_' + id, d); };
+    for (let n = 1; n <= 41; n++) { const v = +(localStorage.getItem('uq_best_l' + n) || 0); if (!v) continue;
+      const d = localStorage.getItem('uq_date_l' + n); BOOKS.forEach(b => up(b.id + '-' + n, v, d)); }
+    for (let k = 1; k <= 10; k++) { const v = +(localStorage.getItem('uq_best_r' + k) || 0); if (v) up('quran-r' + k, v, localStorage.getItem('uq_date_r' + k)); }
+    localStorage.setItem('uq_migrated_v2', '1');
+  } catch (e) {}
+})();
+function setRoute(book) { try { history.replaceState(null, '', book ? ROOT + book + '/' : ROOT); } catch (e) {} }
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const HON = { T: 'تَعَالٰى', S: 'ﷺ', A: 'عَلَيْهِ السَّلَام', R: 'رَضِيَ اللهُ عَنْهُ', H: 'رَضِيَ اللهُ عَنْهَا', M: 'رَحْمَةُ اللهِ عَلَيْهِ' };
@@ -41,12 +60,12 @@ const sfx = {
 const CLIPS = new Set(window.UQ_CLIPS || []);
 const voiceEl = new Audio(); voiceEl.preload = 'auto';
 let seqToken = 0, unlocked = false;
-function unlockAudio() { if (unlocked) return; unlocked = true; try { voiceEl.src = 'audio/silence.mp3'; voiceEl.play().catch(() => {}); } catch (e) {} }
+function unlockAudio() { if (unlocked) return; unlocked = true; try { voiceEl.src = AUD + 'silence.mp3'; voiceEl.play().catch(() => {}); } catch (e) {} }
 function stopVoice() { seqToken++; try { voiceEl.pause(); } catch (e) {} if (window.speechSynthesis) speechSynthesis.cancel(); }
 function playClip(id, tok) {
   return new Promise(res => { if (tok !== seqToken) return res();
     let done = false; const fin = () => { if (!done) { done = true; res(); } };
-    voiceEl.onended = fin; voiceEl.onerror = fin; voiceEl.src = 'audio/' + id + '.mp3';
+    voiceEl.onended = fin; voiceEl.onerror = fin; voiceEl.src = AUD + id + '.mp3';
     voiceEl.play().catch(fin); setTimeout(fin, 15000); });
 }
 function ttsFallback(seg) {
@@ -54,15 +73,17 @@ function ttsFallback(seg) {
     const u = new SpeechSynthesisUtterance(seg.text); u.lang = seg.lang === 'ar' ? 'ar-SA' : 'en-GB'; u.rate = .95;
     u.onend = u.onerror = () => res(); speechSynthesis.speak(u); setTimeout(res, 8000); });
 }
+let preSay = null;
 async function speak(parts) {
   if (!soundOn) return; stopVoice(); const tok = seqToken;
+  if (preSay) { parts = [preSay].concat(parts); preSay = null; }
   const segs = [].concat(parts).filter(Boolean).flatMap(p => UQV.segments(p));
   for (const s of segs) { if (tok !== seqToken || !soundOn) return;
     const id = UQV.id(s);
     if (CLIPS.has(id)) await playClip(id, tok); else { console.warn('MISSING_CLIP', id, s.lang, s.text); await ttsFallback(s); } }
 }
 let prefetched = false;
-function prefetchClips() { if (prefetched) return; prefetched = true; let i = 0; const ids = [...CLIPS]; (function next() { if (i >= ids.length) return; fetch('audio/' + ids[i++] + '.mp3').catch(() => {}).finally(() => setTimeout(next, 40)); })(); }
+function prefetchClips() { if (prefetched) return; prefetched = true; let i = 0; const ids = [...CLIPS]; (function next() { if (i >= ids.length) return; fetch(AUD + ids[i++] + '.mp3').catch(() => {}).finally(() => setTimeout(next, 40)); })(); }
 window.__uqVoice = { speak, CLIPS, el: voiceEl };
 
 /* ---------- background + fx ---------- */
@@ -107,15 +128,15 @@ const SHAPES = ['khatam', 'crescent', 'lantern', 'star', 'hexagon', 'dome', 'pal
 const SHAPE_NAME = { khatam: 'Eight-point star', crescent: 'Crescent moon', lantern: 'Lantern', star: 'Bright star', hexagon: 'Hexagon badge', dome: 'Masjid dome', palm: 'Date palm', drop: 'Water drop', book: 'Open book', sun: 'Sunshine', flower: 'Geometric flower', kite: 'Diamond' };
 function stickerList() {
   const out = [];
-  LV.filter(l => !l.review).forEach(l => {
-    const shape = SHAPES[(l.n - 1) % SHAPES.length];
-    out.push({ id: 's_' + l.id, group: 'lesson', shape, color: l.color, label: l.name, name: SHAPE_NAME[shape], have: best(l.id) >= 1, num: l.n, how: 'Finish ' + l.name });
-    out.push({ id: 'g_' + l.id, group: 'perfect', shape, color: l.color, gold: true, label: l.name + ' ★★★', name: 'Golden ' + SHAPE_NAME[shape].toLowerCase(), have: best(l.id) >= 3, num: l.n, how: 'Get 3 stars in ' + l.name });
+  LV.filter(l => !l.review).forEach((l, k) => {
+    const shape = SHAPES[k % SHAPES.length];
+    out.push({ id: 's_' + l.id, group: 'lesson', book: l.book, shape, color: l.color, label: l.name, name: SHAPE_NAME[shape], have: best(l.id) >= 1, num: l.n, how: 'Finish ' + l.name });
+    out.push({ id: 'g_' + l.id, group: 'perfect', book: l.book, shape, color: l.color, gold: true, label: l.name + ' ★★★', name: 'Golden ' + SHAPE_NAME[shape].toLowerCase(), have: best(l.id) >= 3, num: l.n, how: 'Get 3 stars in ' + l.name });
   });
-  LV.filter(l => l.review).forEach((l, i) => out.push({ id: 's_' + l.id, group: 'review', shape: 'medal', color: '#E7B008', label: l.name, name: 'Review medal', have: best(l.id) >= 1, num: i + 1, how: 'Finish ' + l.name }));
+  LV.filter(l => l.review).forEach((l, i) => out.push({ id: 's_' + l.id, group: 'review', book: l.book, shape: 'medal', color: '#E7B008', label: l.name, name: 'Review medal', have: best(l.id) >= 1, num: l.from, how: 'Finish ' + l.name }));
   const st = streak(), bs = Math.max(st.best || 0, st.count), ts = totalStars();
   [[3, '3-day streak'], [7, '7-day streak'], [14, '14-day streak'], [30, '30-day streak']].forEach(([d, n]) => out.push({ id: 'k' + d, group: 'special', shape: 'lantern', color: '#ff8a3d', gold: d >= 14, label: n, name: 'Streak lantern', have: bs >= d, num: d, how: 'Play ' + d + ' days in a row' }));
-  [[10, 'moon'], [30, 'moon'], [60, 'moon'], [100, 'moon'], [150, 'moon']].forEach(([n]) => out.push({ id: 'm' + n, group: 'special', shape: 'crescent', color: '#5c7cfa', gold: n >= 100, label: n + ' stars', name: 'Star moon', have: ts >= n, num: n, how: 'Collect ' + n + ' ★' }));
+  [[10], [30], [60], [100], [150], [200], [300]].forEach(([n]) => out.push({ id: 'm' + n, group: 'special', shape: 'crescent', color: '#5c7cfa', gold: n >= 100, label: n + ' stars', name: 'Star moon', have: ts >= n, num: n, how: 'Collect ' + n + ' ★' }));
   return out;
 }
 function stickerSVG(st, size = 96) {
@@ -146,7 +167,7 @@ const topbar = $('#topbar'), progFill = $('#progFill'), scoreEl = $('#score'), s
 const setSoundIcon = () => soundBtn.textContent = soundOn ? '🔊' : '🔈';
 setSoundIcon();
 soundBtn.onclick = () => { soundOn = !soundOn; localStorage.setItem('uq_sound', soundOn ? 'on' : 'off'); setSoundIcon(); unlockAudio(); if (!soundOn) stopVoice(); };
-$('#homeBtn').onclick = () => { cleanup(); showMap(); };
+$('#homeBtn').onclick = () => { cleanup(); S && S.L ? showMap(S.L.book) : showHub(); };
 function setScore(v, bump) { scoreEl.textContent = '★ ' + v; if (bump) { scoreEl.classList.remove('bump'); void scoreEl.offsetWidth; scoreEl.classList.add('bump'); } }
 const NOOR = `<svg class="noor" viewBox="0 0 100 100"><g fill="#E7B008" stroke="#fff" stroke-width="3"><rect x="22" y="22" width="56" height="56" rx="6"/><rect x="22" y="22" width="56" height="56" rx="6" transform="rotate(45 50 50)"/></g><circle cx="50" cy="50" r="14" fill="#fff8d6"/></svg>`;
 const guide = msg => `<div class="guide">${NOOR}<div class="bubble">${msg}</div></div>`;
@@ -154,48 +175,82 @@ let cleanupFns = [];
 function cleanup() { cleanupFns.forEach(f => f()); cleanupFns = []; stopVoice(); }
 
 /* ---------- screens ---------- */
-function showSplash() {
-  topbar.classList.add('hidden');
+function showSplash(book) {
+  topbar.classList.add('hidden'); const B = book && BK[book];
   app.innerHTML = `<section class="screen" style="justify-content:center;min-height:80vh">
-    <div class="logo-chip"><img src="../assets/uloom-online-logo.png" alt="Ashraful Uloom Online"></div>
+    <div class="logo-chip"><img src="${ASSET}uloom-online-logo.png" alt="Ashraful Uloom Online"></div>
     <h1 class="title">Uloom <span>Quest</span></h1>
-    <p class="sub">${esc(D.subtitle)} · Tas-heel series</p>
+    ${B ? `<p class="sub book-sub"><span class="bk-ic" style="background:${B.color}">${B.icon}</span> ${esc(B.title)}</p>` : `<p class="sub">${esc(D.subtitle)} · Tas-heel series</p>`}
     <p class="ar bism" style="color:#fff;font-size:30px;margin:0">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</p>
     <button class="big-btn" id="play">▶ Play</button>
     <p class="foot">Tap to play. Turn the sound on to hear the questions.</p></section>`;
-  $('#play').onclick = () => { ctx(); unlockAudio(); sfx.whoosh(); showMap(true); setTimeout(() => speak('Bismillah! Let us play.'), 50); prefetchClips(); };
+  $('#play').onclick = () => { ctx(); unlockAudio(); sfx.whoosh(); if (B) showMap(book, true); else showHub(true); setTimeout(() => speak(B ? [B.say, 'Bismillah! Let us play.'] : 'Bismillah! Let us play.'), 50); prefetchClips(); };
 }
 function chips() {
   const st = streak(), have = stickerList().filter(s => s.have).length;
   return `<div class="chips"><span class="chip"><b>⭐ ${totalStars()}</b> stars</span><span class="chip">🏮 <b>${st.count}</b> day streak</span>
     <button class="chip btn" id="stk">🎖️ <b>${have}</b> stickers</button></div>`;
 }
-function nextSuggested() { const l = LV.find(l => !l.review && best(l.id) === 0); return l ? l.id : null; }
-function showMap(first) {
-  cleanup(); topbar.classList.add('hidden');
-  const nxt = nextSuggested();
-  const node = (l, k) => {
-    const b = best(l.id), sub = l.review ? '' : `<span class="subs">${l.subjects.map(s => D.subjects[s].icon).join('')}</span>`;
-    return `<button class="node${l.review ? ' rev' : ''}${l.id === nxt ? ' next' : ''}${b ? ' done' : ''}" data-id="${l.id}" style="--c:${l.color};--x:${Math.round(Math.sin(k * 1.1) * 13)}%">
-      <span class="dot">${l.review ? '🌟' : l.n}</span><span class="nm">${esc(l.name)}</span>${sub}
-      <span class="st">${[1, 2, 3].map(n => n <= b ? '★' : '☆').join('')}</span></button>`;
-  };
-  const units = D.units.map(u => {
-    const items = LV.filter(l => (!l.review && l.n >= u.from && l.n <= u.to) || (l.review && l.to >= u.from && l.to <= u.to));
-    items.sort((a, b) => (a.review ? a.to + .5 : a.n) - (b.review ? b.to + .5 : b.n));
-    return `<div class="unit"><h2>${esc(u.name)}</h2><p>${esc(u.note)}</p><div class="path">${items.map(node).join('')}</div></div>`;
+const bookLevels = (book, withReviews = true) => LV.filter(l => l.book === book && (withReviews || !l.review));
+function nextSuggested(book) { const l = bookLevels(book, false).find(l => best(l.id) === 0); return l ? l.id : null; }
+/* Class 1 hub: one card per book */
+function showHub(first) {
+  cleanup(); topbar.classList.add('hidden'); curBook = null; setRoute(null);
+  const cards = BOOKS.map(b => {
+    const ls = bookLevels(b.id, false), rv = bookLevels(b.id).filter(l => l.review), all = bookLevels(b.id);
+    const got = all.reduce((s, l) => s + best(l.id), 0), done = ls.filter(l => best(l.id)).length;
+    return `<a class="book-card" href="${b.id}/" data-book="${b.id}" style="--c:${b.color}">
+      <span class="bk-ic">${b.icon}</span>
+      <span class="bk-txt"><b class="bk-nm">${esc(b.short)}</b><span class="bk-title">${esc(b.title)}</span>
+        <span class="bk-meta">${ls.length} lessons · ${rv.length} reviews</span></span>
+      <span class="bk-prog"><span class="st">⭐ ${got}/${all.length * 3}</span><span class="bar"><i style="width:${Math.round(done / ls.length * 100)}%"></i></span><small>${done}/${ls.length} done</small></span></a>`;
   }).join('');
   app.innerHTML = `<section class="screen">
-    <div class="logo-chip" style="animation:none;padding:6px 10px"><img src="../assets/uloom-online-logo.png" alt="" style="height:60px"></div>
-    ${guide('Assalamu alaikum! Choose a lesson.')}
+    <div class="logo-chip" style="animation:none;padding:6px 10px"><img src="${ASSET}uloom-online-logo.png" alt="" style="height:60px"></div>
+    <h1 class="title" style="font-size:40px">Class 1 <span>Books</span></h1>
+    ${guide('Assalamu alaikum! Choose a book.')}
+    ${chips()}
+    <div class="books">${cards}</div>
+    <p class="foot">Content from the Jamiatul Ulama SA Tas-heel series, Class 1, and Towards Reading the Qur'an Part 1 (Lenasia Muslim Association). Each book has its own link, so a teacher can share just one book. Stars, stickers and names are saved only on this device. Nothing is sent anywhere.</p>
+  </section>`;
+  app.querySelectorAll('.book-card').forEach(a => a.onclick = e => { e.preventDefault(); sfx.tap(); showMap(a.dataset.book); });
+  $('#stk').onclick = () => { sfx.tap(); showStickers(); };
+  if (!first) speak('Assalamu alaikum! Choose a book.');
+}
+/* One book's own lesson map */
+function showMap(book, first) {
+  book = book || curBook; if (!BK[book]) return showHub(first);
+  cleanup(); topbar.classList.add('hidden'); curBook = book; setRoute(book);
+  const B = BK[book], nxt = nextSuggested(book), ls = bookLevels(book);
+  const node = (l, k) => {
+    const b = best(l.id);
+    return `<button class="node${l.review ? ' rev' : ''}${l.id === nxt ? ' next' : ''}${b ? ' done' : ''}" data-id="${l.id}" style="--c:${l.color};--x:${Math.round(Math.sin(k * 1.1) * 13)}%">
+      <span class="dot">${l.review ? '🌟' : l.n}</span><span class="nm">${l.review ? 'Review ' + l.from + '–' + l.to : 'Lesson ' + l.n}</span><span class="subs">${l.review ? 'Mixed questions' : esc(l.learned[0] ? l.learned[0].replace(/\{.\}/g, '').slice(0, 46) : '')}</span>
+      <span class="st">${[1, 2, 3].map(n => n <= b ? '★' : '☆').join('')}</span></button>`;
+  };
+  const parts = B.parts || [[null, 1, 99]];
+  const units = parts.map(([title, from, to]) => {
+    const items = ls.filter(l => l.review ? (l.to >= from && l.to <= to) : (l.n >= from && l.n <= to));
+    items.sort((a, b) => (a.review ? a.to + .5 : a.n) - (b.review ? b.to + .5 : b.n));
+    return `<div class="unit">${title ? `<h2>${esc(title)}</h2><p>Lessons ${from}–${to}</p>` : ''}<div class="path">${items.map(node).join('')}</div></div>`;
+  }).join('');
+  const nL = ls.filter(l => !l.review).length;
+  app.innerHTML = `<section class="screen">
+    <div class="book-head" style="--c:${B.color}">
+      <button class="ghost-btn" id="allb">← All books</button>
+      <div class="bk-row"><span class="bk-ic">${B.icon}</span><div><h1>${esc(B.short)}</h1><p>${esc(B.title)} · ${esc(B.publisher)}</p><p class="bk-meta">${nL} lessons · ${ls.length - nL} reviews</p></div></div>
+      ${B.note ? `<p class="bk-note">ⓘ ${esc(B.note)}</p>` : ''}
+    </div>
+    ${guide(esc(B.short) + ': choose a lesson.')}
     ${chips()}
     <div class="map">${units}</div>
-    <p class="foot">Content from the Jamiatul Ulama SA Tas-heel series, Class 1 (Aqaa-id, Fiqh, Akhlaaq, Ahaadeeth, Taa-reekh) and Towards Reading the Qur'an Part 1. Stars, stickers and names are saved only on this device. Nothing is sent anywhere.</p>
+    <p class="foot">${esc(B.title)}. Stars, stickers and names are saved only on this device.</p>
   </section>`;
   app.querySelectorAll('.node').forEach(b => b.onclick = () => { sfx.tap(); startLevel(b.dataset.id); });
   $('#stk').onclick = () => { sfx.tap(); showStickers(); };
+  $('#allb').onclick = () => { sfx.tap(); showHub(); };
   const n = app.querySelector('.node.next'); if (n && !first) n.scrollIntoView({ block: 'center' });
-  if (!first) speak('Assalamu alaikum! Choose a lesson.');
+  if (!first) speak([B.say, 'Choose a lesson.']);
 }
 
 let S;
@@ -203,6 +258,7 @@ function startLevel(id) {
   const L = LV.find(l => l.id === id); if (!L) return showMap();
   let rounds = L.review ? shuffle(UQ_reviewPool(L)).slice(0, L.count) : L.rounds.slice();
   S = { L, rounds, i: 0, score: 0, first: 0, scored: rounds.filter(r => r.type !== 'intro').length };
+  curBook = L.book; setRoute(L.book); preSay = BK[L.book] ? BK[L.book].say : null;
   topbar.classList.remove('hidden'); setScore(0); nextRound();
 }
 const PRAISE = ['MashaAllah!', 'Excellent!', 'Well done!', 'Super star!', 'Brilliant!'];
@@ -211,9 +267,11 @@ function nextRound() {
   cleanup();
   progFill.style.width = (S.i / S.rounds.length * 100) + '%';
   if (S.i >= S.rounds.length) return showEnd();
-  const r = S.rounds[S.i], sub = D.subjects[r.s];
+  const r = S.rounds[S.i], B = BK[S.L.book] || { color: '#124930', icon: '', short: '' };
+  const lessonTag = S.L.review ? 'Review ' + S.L.from + '–' + S.L.to : 'Lesson ' + S.L.n;
+  const extra = r.rev ? ` <small class="revtag">· revision of Lesson ${r.rev}</small>` : (S.L.review && r.fromLesson ? ` <small class="revtag">· from Lesson ${r.fromLesson}</small>` : '');
   app.innerHTML = `<section class="screen">
-    <span class="badge" style="background:${sub.color}">${sub.icon} ${sub.name}</span>
+    <span class="badge" style="background:${B.color}" title="${esc(B.title)}">${B.icon} ${esc(B.short)} – ${lessonTag}${extra}</span>
     <div class="card" id="rc"></div>
     <div class="feedback" id="fb"></div></section>`;
   const rc = $('#rc'); let mistakes = 0;
@@ -402,7 +460,8 @@ function showEnd() {
   const fresh = stickerList().filter(s => s.have && !before.has(s.id));
   const msg = stars === 3 ? 'MashaAllah! You are a super star!' : stars === 2 ? 'Well done! Keep going!' : 'Good try! Play again to get more stars!';
   app.innerHTML = `<section class="screen">
-    <h1 class="title" style="font-size:44px">${esc(S.L.name)}</h1>
+    <p class="sub" style="margin:0">${esc((BK[S.L.book] || {}).title || '')}</p>
+    <h1 class="title" style="font-size:40px">${esc(S.L.name)}</h1>
     <div class="end-stars">${[1, 2, 3].map(n => `<span class="${n <= stars ? '' : 'off'}" style="animation-delay:${n * .25}s">⭐</span>`).join('')}</div>
     ${fresh.length ? `<div class="card newstk"><h3>New sticker${fresh.length > 1 ? 's' : ''}!</h3><div class="stk-row">${fresh.map(s => `<div class="stk-new">${stickerSVG(s, 104)}<small>${esc(s.label)}</small></div>`).join('')}</div></div>` : ''}
     <div class="card">${guide(`<b>${msg}</b><br>You got <b>${S.score}</b> ★ points. 🏮 ${st.count}-day streak!`)}
@@ -410,12 +469,13 @@ function showEnd() {
       <ul class="learned">${S.L.learned.map(x => `<li>${fmt(x)}</li>`).join('')}</ul></div>
     <div class="end-btns">
       <button class="big-btn" id="cert">🎓 Certificate</button>
-      <button class="ghost-btn" id="again">↻ Play again</button><button class="ghost-btn" id="map">Lesson map</button><button class="ghost-btn" id="stk">🎖️ Stickers</button></div>
+      <button class="ghost-btn" id="again">↻ Play again</button><button class="ghost-btn" id="map">${esc((BK[S.L.book] || {}).short || 'Lesson')} map</button><button class="ghost-btn" id="hub">All books</button><button class="ghost-btn" id="stk">🎖️ Stickers</button></div>
     <p class="ar" style="color:#fff;font-size:26px;margin:0">جَزَاكَ اللهُ خَيْرًا</p></section>`;
   rain(); sfx.good();
   speak(fresh.length ? [msg, 'You earned a new sticker!'] : msg);
   $('#again').onclick = () => startLevel(S.L.id);
-  $('#map').onclick = () => showMap();
+  $('#map').onclick = () => showMap(S.L.book);
+  $('#hub').onclick = () => showHub();
   $('#stk').onclick = showStickers;
   $('#cert').onclick = () => showCertificate(S.L.id);
 }
@@ -423,18 +483,19 @@ function showEnd() {
 function showStickers() {
   cleanup(); topbar.classList.add('hidden');
   const all = stickerList(), have = all.filter(s => s.have).length;
-  const grp = (g, title) => `<h2>${title}</h2><div class="stk-grid">${all.filter(s => s.group === g).map(s => `
+  const grp = (g, title, book) => `<h2>${title}</h2><div class="stk-grid">${all.filter(s => s.group === g && (!book || s.book === book)).map(s => `
     <button class="stk-cell${s.have ? '' : ' locked'}" data-id="${s.id}">${stickerSVG(s, 84)}<small>${esc(s.have ? s.label : s.how)}</small></button>`).join('')}</div>`;
   app.innerHTML = `<section class="screen">
     <h1 class="title" style="font-size:40px">My <span>Stickers</span></h1>
     ${chips()}
     <div class="card stk-book">${guide(`You have <b>${have}</b> of <b>${all.length}</b> stickers. Finish a lesson to earn its sticker. Get 3 stars for the golden one!`)}
-      ${grp('lesson', 'Lesson stickers')}${grp('perfect', 'Golden stickers (3 stars)')}${grp('review', 'Review medals')}${grp('special', 'Special badges')}
+      ${grp('special', 'Special badges')}
+      ${BOOKS.map(b => `<div class="stk-sec" style="--c:${b.color}"><h2 class="stk-bk">${b.icon} ${esc(b.short)} <small>${esc(b.title)}</small></h2>${grp('lesson', 'Lesson stickers', b.id)}${grp('perfect', 'Golden stickers (3 stars)', b.id)}${grp('review', 'Review medals', b.id)}</div>`).join('')}
       <h2>My certificates</h2><div class="cert-list">${LV.filter(l => best(l.id) >= 1).map(l => `<button class="ghost-btn dark" data-cert="${l.id}">🎓 ${esc(l.name)}</button>`).join('') || '<p>Finish a lesson to get your first certificate.</p>'}</div>
     </div>
-    <button class="big-btn" id="map">Lesson map</button></section>`;
+    <button class="big-btn" id="map">${curBook ? esc(BK[curBook].short) + ' map' : 'All books'}</button></section>`;
   speak('Here are your stickers!');
-  $('#map').onclick = () => showMap();
+  $('#map').onclick = () => curBook ? showMap(curBook) : showHub();
   app.querySelectorAll('[data-cert]').forEach(b => b.onclick = () => showCertificate(b.dataset.cert));
   app.querySelectorAll('.stk-cell').forEach(b => b.onclick = () => { if (b.classList.contains('locked')) { sfx.tap(); return; } sfx.sparkle(); const [x, y] = center(b); burst(x, y, 18); b.classList.remove('wiggle'); void b.offsetWidth; b.classList.add('wiggle'); });
 }
@@ -452,7 +513,7 @@ function showCertificate(id) {
       <p class="tiny">Your name stays on this device. It is never sent anywhere.</p>
       <div class="end-btns"><button class="big-btn" id="dl">⬇ Download</button><button class="ghost-btn dark" id="pr">🖨 Print</button></div>
     </div>
-    <button class="ghost-btn" id="back">Lesson map</button></section>
+    <button class="ghost-btn" id="back">${esc((BK[L.book] || {}).short || 'Lesson')} map</button></section>
     <div id="printArea"></div>`;
   const cvs = $('#cert'), nm = $('#nm');
   const draw = () => drawCert(cvs, L, b, nm.value.trim());
@@ -461,9 +522,9 @@ function showCertificate(id) {
   $('#dl').onclick = () => { draw(); setTimeout(() => cvs.toBlob(bl => { const a = document.createElement('a'); a.href = URL.createObjectURL(bl);
     a.download = 'Uloom-Quest-' + L.name.replace(/\W+/g, '-') + '-certificate.png'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000); }, 'image/png'), 150); };
   $('#pr').onclick = () => { draw(); setTimeout(() => { $('#printArea').innerHTML = `<img src="${cvs.toDataURL('image/png')}" alt="Certificate">`; setTimeout(() => window.print(), 200); }, 150); };
-  $('#back').onclick = () => showMap();
+  $('#back').onclick = () => showMap(L.book);
 }
-const LOGO = new Image(); LOGO.src = '../assets/uloom-online-logo.png';
+const LOGO = new Image(); LOGO.src = ASSET + 'uloom-online-logo.png';
 function drawCert(c, L, stars, name) {
   const g = c.getContext('2d'), W = c.width, H = c.height;
   g.fillStyle = '#FBFBF8'; g.fillRect(0, 0, W, H);
@@ -480,8 +541,9 @@ function drawCert(c, L, stars, name) {
   g.font = '800 92px "Baloo 2", sans-serif'; g.fillStyle = '#c28f00'; g.fillText(name || '________________', W / 2, 585);
   g.strokeStyle = '#E7B008'; g.lineWidth = 3; g.beginPath(); g.moveTo(420, 615); g.lineTo(W - 420, 615); g.stroke();
   g.font = '600 38px "Baloo 2", sans-serif'; g.fillStyle = '#124930';
-  g.fillText('for completing Uloom Quest · Class 1 · ' + L.name, W / 2, 690);
-  const subj = L.review ? 'Revision of Lessons ' + L.from + ' to ' + L.to : L.subjects.map(s => D.subjects[s].name).join(' · ');
+  const Bk = BK[L.book] || { title: '', short: '' };
+  g.fillText('for completing ' + L.name + '  ·  Class 1', W / 2, 690);
+  const subj = Bk.title + (L.review ? '  ·  Revision of Lessons ' + L.from + ' to ' + L.to : (L.learned[0] ? '  ·  ' + L.learned[0].replace(/\{.\}/g, '').replace(/[\u0600-\u06FF]+/g, '').replace(/\s+[–-]\s*$/, '').trim() : ''));
   g.font = '600 32px "Baloo 2", sans-serif'; g.fillStyle = '#3b5d50'; g.fillText(subj, W / 2, 745);
   g.font = '64px serif'; g.fillStyle = '#E7B008'; g.fillText([1, 2, 3].map(n => n <= stars ? '★' : '☆').join(' '), W / 2, 840);
   const d = localStorage.getItem('uq_date_' + L.id) || today();
@@ -489,12 +551,14 @@ function drawCert(c, L, stars, name) {
   g.fillText('Date: ' + new Date(d + 'T12:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }), W / 2 - 330, 960);
   g.fillText('Ashraful Uloom Online', W / 2 + 330, 960);
   g.font = '700 40px "Amiri", serif'; g.direction = 'rtl'; g.fillText('مَا شَاءَ اللهُ', W / 2, 960); g.direction = 'ltr';
-  g.font = '500 22px "Baloo 2", sans-serif'; g.fillStyle = '#6b8b7e'; g.fillText('Tas-heel series · Jamiatul Ulama SA  |  Towards Reading the Qur\'an Part 1', W / 2, 1035);
+  g.font = '500 22px "Baloo 2", sans-serif'; g.fillStyle = '#6b8b7e'; g.fillText('Uloom Quest · ' + Bk.title + ' · ' + (Bk.publisher || ''), W / 2, 1035);
 }
 
 const qs = new URLSearchParams(location.search);
-if (qs.has('level')) { const id = qs.get('level'); if (LV.some(l => l.id === id)) startLevel(id); else showSplash(); }
+const OLD = id => { const m = /^([lr])(\d+)$/.exec(id || ''); return m ? (m[1] === 'l' ? 'quran-' + m[2] : 'quran-r' + m[2]) : id; };
+const routeBook = window.UQ_BOOK || (location.hash.slice(1) in BK ? location.hash.slice(1) : null) || (BK[qs.get('book')] ? qs.get('book') : null);
+if (qs.has('level')) { const id = OLD(qs.get('level')); if (LV.some(l => l.id === id)) startLevel(id); else showSplash(routeBook); }
 else if (qs.has('stickers')) showStickers();
-else showSplash();
-window.__uq = { startLevel, showMap, showStickers, showCertificate, S: () => S, LV };
+else showSplash(routeBook);
+window.__uq = { startLevel, showMap, showHub, showStickers, showCertificate, S: () => S, LV, BOOKS };
 })();

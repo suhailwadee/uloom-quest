@@ -288,3 +288,10 @@ h1.title span{color:var(--gold)}
 .pcards{display:grid;grid-template-columns:1fr;gap:10px;margin-top:10px}
 .pcard{display:flex;align-items:center;gap:12px;font:inherit;font-size:18px;font-weight:700;text-align:left;min-height:68px}
 .pc-ic{font-size:36px;flex:none}
+
+/* sequence v3.1: compact numbered row, so slots and cards fit on one screen */
+.sslots{flex-direction:row;justify-content:center;flex-wrap:wrap}
+.sslot{flex-direction:column;justify-content:center;gap:2px;width:58px;min-height:72px;padding:4px}
+.sslot b{width:26px;height:26px;font-size:14px}
+.sslot span{font-size:30px;min-height:32px}
+.scard.placed{display:none}

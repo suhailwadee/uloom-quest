@@ -39,7 +39,7 @@ PLAN = r"""
  if (t==='maptap') return {act:'click', sel:`.pin[data-i="${r.answer}"]`};
  if (t==='dragmatch') { const c=q('.mchip:not(.placed)'); if(!c) return {act:'wait'}; return {act:'drag', from:`.mchip[data-i="${c.dataset.i}"]`, to:`.mt[data-i="${c.dataset.i}"]`}; }
  if (t==='sequence') { const n=rc.querySelectorAll('.sslot.filled').length; return {act:'drag', from:`.scard[data-i="${n}"]`, to:'#ss'}; }
- if (t==='memory') { const left=[...rc.querySelectorAll('.mcard:not(.matched):not(.up)')]; if(!left.length) return {act:'wait'}; const a=left[0]; const b=left.find(x=>x!==a && x.dataset.k===a.dataset.k); if(!b) return {act:'wait'}; return {act:'pair', a:`.mcard[data-i="${a.dataset.i}"]`, b:`.mcard[data-i="${b.dataset.i}"]`}; }
+ if (t==='memory') { const up1=[...rc.querySelectorAll('.mcard.up:not(.matched)')]; if (up1.length===1) { const p=[...rc.querySelectorAll('.mcard:not(.matched):not(.up)')].find(x=>x.dataset.k===up1[0].dataset.k); if (p) return {act:'click', sel:`.mcard[data-i="${p.dataset.i}"]`}; } if (up1.length===2) return {act:'wait'}; const left=[...rc.querySelectorAll('.mcard:not(.matched):not(.up)')]; if(!left.length) return {act:'wait'}; const a=left[0]; const b=left.find(x=>x!==a && x.dataset.k===a.dataset.k); if(!b) return {act:'wait'}; return {act:'pair', a:`.mcard[data-i="${a.dataset.i}"]`, b:`.mcard[data-i="${b.dataset.i}"]`}; }
  return {act:'old'};
 }
 """
@@ -100,7 +100,7 @@ async def solve_new(pg, cdp, mobile, issues, shot=None):
             if shot: await pg.screenshot(path=shot); shot=None
             await tap(pg, cdp, mobile, a['sel']); await pg.wait_for_timeout(400); continue
         if a['act']=='pair':
-            await tap(pg, cdp, mobile, a['a']); await pg.wait_for_timeout(150)
+            await tap(pg, cdp, mobile, a['a']); await pg.wait_for_timeout(400)
             await tap(pg, cdp, mobile, a['b'])
             if shot: await pg.wait_for_timeout(300); await pg.screenshot(path=shot); shot=None
             await pg.wait_for_timeout(800); continue

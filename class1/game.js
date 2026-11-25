@@ -318,13 +318,13 @@ function dragify(el, onDrop, onPick) {
   el.addEventListener('pointerup', end);
   el.addEventListener('pointercancel', e => { if (e.pointerId === id) { id = null; el.classList.remove('dragging'); el.style.transform = ''; } });
 }
-const ICONS = [[/Allaah|Allah|Rabb|Creator/i, '✨'], [/Makkah|Ka'bah/i, '🕋'], [/toilet|istinjaa|urine|stool|flush/i, '🚽'], [/du'?a|protection|forgive|begged/i, '🤲'], [/salaam|greet/i, '🤝'], [/classroom|teacher|school/i, '🏫'],
-  [/foot|step/i, '🦶'], [/hand/i, '✋'], [/water|rinse|wash|bath|soap/i, '💧'], [/teeth|brush/i, '🪥'], [/nail/i, '✂️'], [/hair|comb/i, '🪮'], [/nose|tissue/i, '🧻'],
-  [/litter|rubbish|bin|dirt|papers/i, '🗑️'], [/river|dam|sea|flood/i, '🌊'], [/ark|ship|boat/i, '⛵'], [/fire/i, '🔥'], [/idol/i, '🪨'], [/king|Namrood/i, '👑'],
-  [/tree|jannah/i, '🌳'], [/earth/i, '🌍'], [/creature|animal|pair/i, '🐾'], [/Shaytaan|trick/i, '🚫'], [/laugh/i, '🗯️'], [/eat|food|cake|hungry|feed/i, '🍽️'],
-  [/drink|glass|juice|milk|gulp/i, '🥛'], [/clothes/i, '👕'], [/shoes/i, '👟'], [/room|tidy|neat/i, '🧹'], [/home|door|parents|sunset/i, '🏠'],
-  [/neighbou?r/i, '🏘️'], [/sick/i, '💊'], [/smile|kind|charity|mercy/i, '💚'], [/lie|fight|swear|argu|scream|nag|harm|hurt|selfish|waste|complain/i, '⚠️'],
-  [/seat|elder|respect/i, '🪑'], [/share|give|take/i, '🎁'], [/sheep/i, '🐑'], [/star|moon/i, '🌙']];
+const ICONS = [[/\b(?:Allaah|Allah|Rabb|Creator)/i, '✨'], [/\b(?:Makkah|Ka'bah)/i, '🕋'], [/\b(?:toilet|istinjaa|urine|stool|flush)/i, '🚽'], [/\b(?:du'?a|protection|forgive|begged)/i, '🤲'], [/\b(?:salaam|greet)/i, '🤝'], [/\b(?:classroom|teacher|school)/i, '🏫'],
+  [/\b(?:foot|step)/i, '🦶'], [/\b(?:hand)/i, '✋'], [/\b(?:water|rinse|wash|bath|soap)/i, '💧'], [/\b(?:teeth|brush)/i, '🪥'], [/\b(?:nail)/i, '✂️'], [/\b(?:hair|comb)/i, '🪮'], [/\b(?:nose|tissue)/i, '🧻'],
+  [/\b(?:litter|rubbish|bin|dirt|papers)/i, '🗑️'], [/\b(?:river|dam|sea|flood)/i, '🌊'], [/\b(?:ark|ship|boat)/i, '⛵'], [/\b(?:fire)/i, '🔥'], [/\b(?:idol)/i, '🪨'], [/\b(?:king|Namrood)/i, '👑'],
+  [/\b(?:tree|jannah)/i, '🌳'], [/\b(?:earth)/i, '🌍'], [/\b(?:creature|animal|pair)/i, '🐾'], [/\b(?:Shaytaan|trick)/i, '🚫'], [/\b(?:laugh)/i, '🗯️'], [/\b(?:eat|food|cake|hungry|feed)/i, '🍽️'],
+  [/\b(?:drink|glass|juice|milk|gulp)/i, '🥛'], [/\b(?:clothes)/i, '👕'], [/\b(?:shoes)/i, '👟'], [/\b(?:room|tidy|neat)/i, '🧹'], [/\b(?:home|door|parents|sunset)/i, '🏠'],
+  [/\b(?:neighbou?r)/i, '🏘️'], [/\b(?:sick)/i, '💊'], [/\b(?:smile|kind|charity|mercy)/i, '💚'], [/\b(?:lie|fight|swear|argu|scream|nag|harm|hurt|selfish|waste|complain)/i, '⚠️'],
+  [/\b(?:seat|elder|respect)/i, '🪑'], [/\b(?:share|give|take)/i, '🎁'], [/\b(?:sheep)/i, '🐑'], [/\b(?:star|moon)/i, '🌙']];
 const iconFor = t => { const m = ICONS.find(([re]) => re.test(t || '')); return m ? m[1] : '⭐'; };
 const R = {
   intro(r, rc, api) {
@@ -672,7 +672,7 @@ const R = {
     const ss = $('#ss');
     rc.querySelectorAll('.scard').forEach(c => dragify(c, (t, tap) => {
       if (next >= r.items.length || (!t && !tap)) return;
-      if (+c.dataset.i === next) { const s = ss.children[next]; s.querySelector('span').innerHTML = c.innerHTML; s.classList.add('filled'); c.classList.add('placed'); next++;
+      if (+c.dataset.i === next) { const s = ss.children[next]; s.querySelector('span').innerHTML = c.querySelector('.sq-ic').innerHTML; s.classList.add('filled'); c.classList.add('placed'); next++;
         api.right(s, { partial: next < r.items.length }); if (next < r.items.length) sfx.pop(); }
       else api.wrong(c, { reveal: reveal(rc.querySelector(`.scard[data-i="${next}"]`)) });
     }, c => speak(r.items[+c.dataset.i])));
